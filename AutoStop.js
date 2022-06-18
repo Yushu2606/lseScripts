@@ -10,7 +10,7 @@ mc.listen("onLeft", () => {
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand("autostop", "配置自动关服。", PermType.Console);
     cmd.overload();
-    cmd.setCallback((_, _, out) => {
+    cmd.setCallback((_cmd, _ori, out) => {
         return out.success(
             `自动关服已${(state = state ? false : true) ? "启用" : "禁用"}`
         );

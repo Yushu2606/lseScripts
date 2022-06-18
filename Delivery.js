@@ -34,35 +34,37 @@ function main(pl) {
         }
     }
     if (pls.length < 1) {
-        pl.tell("物品送达失败：目前没有可送达用户");
+        pl.tell("送达失败：目前没有可送达用户");
         return;
     }
+    let itemsmsg = [];
     let items = [];
     let inventoryItems = pl.getInventory().getAllItems();
     for (let item of inventoryItems) {
         if (item.isNull()) continue;
-        items.push(
+        itemsmsg.push(
             `[${inventoryItems.indexOf(item)}] ${item.name}§r（${item.type}:${
                 item.aux
             }）* ${item.count}`
         );
+        items.push(item);
     }
-    if (items.length < 1) {
-        pl.tell("物品送达失败：背包为空");
+    if (itemsmsg.length < 1) {
+        pl.tell("送达失败：背包为空");
         return;
     }
     let fm = mc.newCustomForm();
     fm.setTitle("快递菜单");
     fm.addDropdown("选择送达对象", pls);
-    fm.addDropdown("物品", items);
+    fm.addDropdown("物品", itemsmsg);
     fm.addSlider("数量", 1, 64);
     pl.sendForm(fm, (_, args) => {
         if (!args) {
             return;
         }
-        let item = inventoryItems[args[1]];
+        let item = items[args[1]];
         if (item.count < args[2]) {
-            pl.tell("物品送达失败：数量不足");
+            pl.tell("送达失败：数量不足");
             return;
         }
         let level = pl.getLevel();
@@ -70,13 +72,13 @@ function main(pl) {
             serviceCharge[1] + serviceCharge[1] * level * 0.1
         );
         if (level < condition) {
-            pl.tell(`物品送达失败：余额不足（需要${condition}级经验）`);
+            pl.tell(`送达失败：余额不足（需要${condition}级经验）`);
             main(pl);
             return;
         }
         let pl1 = mc.getPlayer(pls[args[0]]);
         if (!pl1) {
-            pl.tell(`物品送达失败：${pls[args[0]]}已离线`);
+            pl.tell(`送达失败：${pls[args[0]]}已离线`);
             return;
         }
         let reduce = Math.round(
@@ -85,7 +87,7 @@ function main(pl) {
         let itemNbt = item.getNbt();
         let newitem = mc.newItem(itemNbt.setByte("Count", Number(args[2])));
         if (!pl1.hasRoomFor(newitem)) {
-            pl.tell(`物品送达失败：${pls[args[0]]}背包已满`);
+            pl.tell(`送达失败：${pls[args[0]]}背包已满`);
             return;
         }
         pl.addLevel(-reduce);

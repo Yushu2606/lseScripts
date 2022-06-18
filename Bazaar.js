@@ -307,25 +307,27 @@ function itemBuy(pl, owner, item) {
     });
 }
 function itemUpload(pl) {
+    let itemsmsg = [];
     let items = [];
     let inventoryItems = pl.getInventory().getAllItems();
     for (let item of inventoryItems) {
         if (item.isNull()) continue;
-        items.push(
+        itemsmsg.push(
             `[${inventoryItems.indexOf(item)}] ${item.name}§r（${item.type}:${
                 item.aux
             }）* ${item.count}`
         );
+        items.push(item);
     }
     let fm = mc.newCustomForm();
-    if (items.length < 1) {
+    if (itemsmsg.length < 1) {
         pl.tell("物品上架失败：背包为空");
         shopItem(pl);
         return;
     }
     fm.setTitle("上架物品");
-    fm.addDropdown("物品", items);
-    fm.addInput("物品名称", "字符串");
+    fm.addDropdown("物品", itemsmsg);
+    fm.addInput("物品名称", "字符串（可空）");
     fm.addInput("物品单价", "数字");
     fm.addSlider("上架数量", 1, 64);
     pl.sendForm(fm, (_, args) => {
@@ -347,7 +349,7 @@ function itemUpload(pl) {
             shopItem(pl);
             return;
         }
-        let item = inventoryItems[args[0]];
+        let item = items[args[0]];
         if (item.count < args[3]) {
             pl.tell(`物品${args[1]}§r * ${args[3]}上架失败：数量不足`);
             shopItem(pl);
@@ -357,7 +359,7 @@ function itemUpload(pl) {
         let itemNBT = item.getNbt();
         let guid = system.randomGuid();
         shop.items[guid] = {
-            name: args[1],
+            name: args[1] || item.name,
             guid: guid,
             price: args[2],
             snbt: itemNBT.setByte("Count", Number(args[3])).toSNBT(),
@@ -376,8 +378,8 @@ function itemManagement(pl, arg) {
     let items = db.get(pl.xuid).items;
     let item = Object.values(items)[arg - 1];
     fm.setTitle(`编辑物品 - ${item.name}`);
-    fm.addInput("物品名称", "字符串", item.name);
-    fm.addInput("物品价格", "数字", item.price);
+    fm.addInput("物品名称", "字符串（可空）", item.name);
+    fm.addInput("物品价格", "数字（可空）", item.price);
     let count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
     fm.addSlider("上架数量", 0, count, 1, count);
     pl.sendForm(fm, (_, args) => {
@@ -386,14 +388,14 @@ function itemManagement(pl, arg) {
             return;
         }
         let shop = db.get(pl.xuid);
-        if (isNaN(args[1])) {
+        if (isNaN(args[1] ?? item.price)) {
             pl.tell(
                 `物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非数字）`
             );
             shopItem(pl);
             return;
         }
-        if (args[1] <= 0) {
+        if (args[1] ?? item.price <= 0) {
             pl.tell(
                 `物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非正数）`
             );
@@ -412,8 +414,8 @@ function itemManagement(pl, arg) {
             shopItem(pl);
             return;
         }
-        shop.items[item.guid].name = args[0];
-        shop.items[item.guid].price = args[1];
+        shop.items[item.guid].name = args[0] || item.name;
+        shop.items[item.guid].price = args[1] ?? item.price;
         let wbd = args[2] < 1;
         if (args[2] != count) {
             let it = mc.newItem(itemNBT.setByte("Count", count - args[2]));

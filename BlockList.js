@@ -16,7 +16,7 @@ mc.listen("onServerStarted", () => {
     cmd.optional("message", ParamType.String);
     cmd.overload(["ChangeAction", "player", "message"]);
     cmd.overload(["OtherAction"]);
-    cmd.setCallback((_, _, out, res) => {
+    cmd.setCallback((_cmd, _ori, out, res) => {
         switch (res.action) {
             case "add":
                 const pl = mc.getPlayer(res.player);
