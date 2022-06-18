@@ -224,9 +224,11 @@ function shopHistroy(pl) {
     for (let historyData of history) {
         if (history.indexOf(historyData) >= maxHistory) continue;
         fm.addLabel(
-            `${data.xuid2name(historyData.buyer)}于${historyData.time}花费${
+            `卖家：${data.xuid2name(historyData.buyer)}\n购买时间${
+                historyData.time
+            }\n物品：${historyData.itemName}§r * ${historyData.count}\n花费：${
                 historyData.cost
-            }级经验购买了${historyData.itemName}§r * ${historyData.count}`
+            }级经验`
         );
     }
     pl.sendForm(fm, () => {
