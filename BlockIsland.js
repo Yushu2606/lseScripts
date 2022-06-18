@@ -86,13 +86,13 @@ function sendInit(pl) {
                         options.push(data.xuid2name(key));
                     }
                     if (options.length < 1) {
-                        pl.tell("暂无可组队玩家");
+                        pl.tell("暂无可组队用户");
                         sendInit(pl);
                         return;
                     }
                     let fm = mc.newCustomForm();
                     fm.setTitle("与他人合作");
-                    fm.addDropdown("选择合作玩家", options);
+                    fm.addDropdown("选择合作用户", options);
                     pl.sendForm(fm, (_, args) => {
                         if (!args) {
                             sendInit(pl);
@@ -100,7 +100,7 @@ function sendInit(pl) {
                         }
                         let pl1 = mc.getPlayer(options[args[0]]);
                         if (!pl1) {
-                            pl.tell("玩家已下线");
+                            pl.tell(`${options[args[0]]}已下线`);
                             sendInit(pl);
                             return;
                         }
@@ -114,7 +114,9 @@ function sendInit(pl) {
                                     return;
                                 }
                                 if (!arg) {
-                                    pl.tell("组队被拒绝");
+                                    pl.tell(
+                                        `与${pl1.realName}的组队请求被拒绝`
+                                    );
                                     sendInit(pl);
                                     return;
                                 }
@@ -135,7 +137,7 @@ function sendInit(pl) {
                                     version: "team",
                                     pos: d2.pos,
                                 });
-                                pl.tell("组队成功");
+                                pl.tell(`与${pl1.realName}组队成功`);
                             }
                         );
                     });

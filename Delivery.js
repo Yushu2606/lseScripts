@@ -34,7 +34,7 @@ function main(pl) {
         }
     }
     if (pls.length < 1) {
-        pl.tell("目前没有可送达玩家");
+        pl.tell("物品送达失败：目前没有可送达用户");
         return;
     }
     let items = [];
@@ -97,6 +97,6 @@ function main(pl) {
         pl.tell(
             `成功向${pl.realName}发送物品${item.name} * ${args[2]}（花费您${reduce}级经验）`
         );
-        pl.tell(`${pl.realName}向您发送物品${item.name} * ${args[2]}`);
+        pl.tell(`${pl.realName}向您发送了物品${item.name} * ${args[2]}`);
     });
 }

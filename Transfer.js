@@ -34,13 +34,13 @@ function main(pl) {
         return;
     }
     let pls = [];
-    for (let pl of mc.getOnlinePlayers()) {
-        if (pl.xuid != pl.xuid) {
-            pls.push(pl.realName);
+    for (let pl1 of mc.getOnlinePlayers()) {
+        if (pl1.xuid != pl.xuid) {
+            pls.push(pl1.realName);
         }
     }
     if (pls.length < 1) {
-        pl.tell("目前没有可转账玩家");
+        pl.tell("转账失败：目前没有可转账用户");
         return;
     }
     let fm = mc.newCustomForm();
@@ -52,8 +52,8 @@ function main(pl) {
         if (!args) {
             return;
         }
-        let pl = mc.getPlayer(pls[args[0]]);
-        if (!pl) {
+        let pl1 = mc.getPlayer(pls[args[0]]);
+        if (!pl1) {
             pl.tell(`转账失败：${pls[args[0]]}已离线`);
             return;
         }
@@ -63,21 +63,19 @@ function main(pl) {
         }
         let inp = Math.round(Number(args[1]));
         if (inp < 1) {
-            pl.tell(`转账失败：经验等级输入错误（非正）`);
+            pl.tell(`转账失败：经验等级输入错误（非正数）`);
             return;
         }
         if (inp > pl.getLevel()) {
-            pl.tell(`转账失败：经验等级输入错误（经验不足）`);
+            pl.tell(`转账失败：经验等级输入错误（余额不足）`);
             return;
         }
         pl.addLevel(-inp);
         let rlevel = Math.round(inp * (1 - serviceCharge));
-        pl.addLevel(rlevel);
+        pl1.addLevel(rlevel);
         pl.tell(
-            `成功向${pl.realName}转账${inp}级经验（实际到账${rlevel}级经验）`
+            `成功向${pl1.realName}转账${inp}级经验（实际到账${rlevel}级经验）`
         );
-        pl.tell(
-            `${pl.realName}向您转账${inp}级经验（实际到账${rlevel}级经验）`
-        );
+        pl1.tell(`${pl.realName}向您转账${rlevel}级经验`);
     });
 }

@@ -38,11 +38,9 @@ mc.listen("onJoin", (pl) => {
         shop.history.push(history);
         shop.pending.splice(shop.pending.indexOf(history), 1);
         pl.tell(
-            `${data.xuid2name(history.buyer)}于${history.time}花费${
-                history.cost
-            }级经验购买了${history.itemName}§r * ${
-                history.count
-            }（您获得了${get}经验值）`
+            `${data.xuid2name(history.buyer)}于${history.time}购买了${
+                history.itemName
+            }§r * ${history.count}（您获得了${get}经验值）`
         );
     }
     db.set(pl.xuid, shop);
@@ -94,7 +92,9 @@ function createShop(pl) {
             return;
         }
         if (pl.getLevel() < initialFunding) {
-            pl.tell(`店铺创建失败：余额不足（需要${initialFunding}级经验）`);
+            pl.tell(
+                `店铺${args[1]}创建失败：余额不足（需要${initialFunding}级经验）`
+            );
             main(pl);
             return;
         }
@@ -110,7 +110,7 @@ function createShop(pl) {
             history: [],
             pending: [],
         });
-        pl.tell("店铺创建成功");
+        pl.tell(`店铺${args[1]}创建成功`);
         main(pl);
     });
 }
@@ -159,7 +159,7 @@ function itemList(pl, owner) {
                 )}\n价格：${item.price}/个`
             );
         }
-    pl.sendForm(fm, (pl, arg) => {
+    pl.sendForm(fm, (_, arg) => {
         if (arg == null) {
             main(pl);
             return;
@@ -184,7 +184,7 @@ function shopInfo(pl) {
         shop.intro = args[1];
         shop.icon = args[2];
         db.set(pl.xuid, shop);
-        pl.tell("店铺信息修改成功");
+        pl.tell(`店铺${args[0]}信息修改成功`);
         shopManagement(pl);
     });
 }
@@ -297,7 +297,7 @@ function itemBuy(pl, owner, item) {
             ownerpl.addExperience(get);
             shop.history.push(history);
             ownerpl.tell(
-                `${pl.realName}于${history.time}花费${cost}级经验购买了${history.itemName}§r * ${num}（您获得了${get}经验值）`
+                `${pl.realName}于${history.time}购买了${history.itemName}§r * ${num}（您获得了${get}经验值）`
             );
         } else shop.pending.push(history);
         db.set(shop.owner, shop);
@@ -418,7 +418,7 @@ function itemManagement(pl, arg) {
         if (args[2] != count) {
             let it = mc.newItem(itemNBT.setByte("Count", count - args[2]));
             if (!pl.getInventory().hasRoomFor(it)) {
-                pl.tell(`物品${args[0]}§r * ${args[2]}修改失败：背包满`);
+                pl.tell(`物品${args[0]}§r * ${args[2]}修改失败：背包已满`);
                 shopItem(pl);
                 return;
             }

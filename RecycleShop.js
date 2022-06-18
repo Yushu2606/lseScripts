@@ -81,10 +81,6 @@ function confirm(pl, itemData, count) {
         const add = Math.round(args[3] * itemData.price * (1 - serviceCharge));
         pl.addExperience(add);
         pl.refreshItems();
-        pl.tell(
-            `回收${itemData.name} * ${args[3]}成功，获得${
-                args[3] * itemData.price
-            }经验值（实际获得${add}经验值）`
-        );
+        pl.tell(`回收物品${itemData.name} * ${args[3]}成功（获得${add}经验值）`);
     });
 }
