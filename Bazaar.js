@@ -4,7 +4,6 @@ ll.registerPlugin("Bazaar", "物品集市", [1, 0, 0]);
 const config = new JsonConfigFile("plugins\\Bazaar\\config.json");
 const command = config.init("command", "bazaar");
 const initialFunding = config.init("initialFunding", 7);
-const maxHistory = config.init("maxHistory", 16);
 const serviceCharge = config.init("serviceCharge", 0.05);
 config.close();
 const db = new KVDatabase("plugins\\Bazaar\\data");
@@ -128,7 +127,7 @@ function shopManagement(pl) {
     );
     fm.addButton("信息设置");
     fm.addButton("物品管理");
-    if (maxHistory > 0) fm.addButton("查看历史纪录");
+    fm.addButton("查看历史纪录");
     pl.sendForm(fm, (_, arg) => {
         switch (arg) {
             case 0:
@@ -217,21 +216,22 @@ function shopItem(pl) {
     });
 }
 function shopHistroy(pl) {
-    let fm = mc.newCustomForm();
+    let fm = mc.newSimpleForm();
     fm.setTitle("历史记录");
-    fm.addLabel(`仅显示最近${maxHistory}次交易记录`);
     let shop = db.get(pl.xuid);
     let history = shop.history.reverse();
+    let content = "";
     for (let historyData of history) {
-        if (history.indexOf(historyData) >= maxHistory) continue;
-        fm.addLabel(
-            `购买时间：${historyData.time}\n卖家：${data.xuid2name(
-                historyData.buyer
-            )}\n物品：${historyData.item.name}§r\n数量：${
-                historyData.count
-            }\n单价：${history.item.price}级经验\n物品NBT：${history.item.snbt}`
-        );
+        if (content) content += "\n";
+        content += `购买时间：${historyData.time}\n卖家：${data.xuid2name(
+            historyData.buyer
+        )}\n物品：${historyData.item.name}§r\n数量：${
+            historyData.count
+        }\n单价：${historyData.item.price}级经验\n物品NBT：${
+            historyData.item.snbt
+        }`;
     }
+    fm.setContent(content);
     pl.sendForm(fm, () => {
         shopManagement(pl);
     });
