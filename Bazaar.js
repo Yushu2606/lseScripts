@@ -32,14 +32,15 @@ mc.listen("onServerStarted", () => {
 mc.listen("onJoin", (pl) => {
     let shop = db.get(pl.xuid);
     if (!shop || shop.pending.length < 1) return;
-    for (let history of shop.pending) {
-        let get = Math.round(history.cost * 7 * (1 - serviceCharge));
+    while (shop.pending.length > 0) {
+        let get = Math.round(
+            history.count * history.item.price * 7 * (1 - history.serviceCharge)
+        );
         pl.addExperience(get);
-        shop.history.push(history);
-        shop.pending.splice(shop.pending.indexOf(history), 1);
+        shop.history.push(shop.pending.shift());
         pl.tell(
             `${data.xuid2name(history.buyer)}于${history.time}购买了${
-                history.itemName
+                history.item.name
             }§r * ${history.count}（您获得了${get}经验值）`
         );
     }
@@ -224,11 +225,11 @@ function shopHistroy(pl) {
     for (let historyData of history) {
         if (history.indexOf(historyData) >= maxHistory) continue;
         fm.addLabel(
-            `卖家：${data.xuid2name(historyData.buyer)}\n购买时间${
-                historyData.time
-            }\n物品：${historyData.itemName}§r * ${historyData.count}\n花费：${
-                historyData.cost
-            }级经验`
+            `购买时间：${historyData.time}\n卖家：${data.xuid2name(
+                historyData.buyer
+            )}\n物品：${historyData.item.name}§r\n数量：${
+                historyData.count
+            }\n单价：${history.item.price}级经验\n物品NBT：${history.item.snbt}`
         );
     }
     pl.sendForm(fm, () => {
@@ -280,10 +281,9 @@ function itemBuy(pl, owner, item) {
         let history = {
             time: system.getTimeStr(),
             buyer: pl.xuid,
-            cost: cost,
-            itemName: shop.items[item.guid].name,
+            serviceCharge: serviceCharge,
+            item: shop.items[item.guid],
             count: num,
-            itemNBT: itemNBT,
         };
         if (count == num) delete shop.items[item.guid];
         else
@@ -299,12 +299,12 @@ function itemBuy(pl, owner, item) {
             ownerpl.addExperience(get);
             shop.history.push(history);
             ownerpl.tell(
-                `${pl.realName}于${history.time}购买了${history.itemName}§r * ${num}（您获得了${get}经验值）`
+                `${pl.realName}于${history.time}购买了${history.item.name}§r * ${num}（您获得了${get}经验值）`
             );
         } else shop.pending.push(history);
         db.set(shop.owner, shop);
         pl.tell(
-            `物品${history.itemName}§r * ${num}购买成功（花费${cost}级经验）`
+            `物品${history.item.name}§r * ${num}购买成功（花费${cost}级经验）`
         );
     });
 }
