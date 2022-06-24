@@ -13,9 +13,12 @@ setInterval(() => {
     let motdt = motd[index];
     if (
         new RegExp(/%playerscount%/).test(motdt) &&
-        ll.hasExported("getPlayersCount")
+        ll.hasExported("playersCount", "get")
     )
-        motdt = motdt.replace(/%playerscount%/, ll.import("getPlayersCount")());
+        motdt = motdt.replace(
+            /%playerscount%/,
+            ll.import("playersCount", "get")()
+        );
     mc.setMotd(`${motdt}§r`);
     index = index == motd.length - 1 ? 0 : index + 1;
 }, interval * 1000);

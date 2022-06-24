@@ -24,8 +24,7 @@ mc.listen("onServerStarted", () => {
         cmd.setCallback((_, ori, out, res) => {
             if ((!ori.player || ori.player.isOP()) && res.player) {
                 if (res.player.length < 1) {
-                    out.error("commands.generic.noTargetMatch");
-                    return;
+                    return out.error("commands.generic.noTargetMatch");
                 }
                 for (let pl of res.player) menu(pl, command);
                 return;
@@ -34,7 +33,7 @@ mc.listen("onServerStarted", () => {
                 menu(ori.player, command);
                 return;
             }
-            out.error("commands.generic.noTargetMatch");
+            return out.error("commands.generic.noTargetMatch");
         });
         cmd.setup();
     }

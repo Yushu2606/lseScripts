@@ -9,17 +9,16 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_, ori, out, res) => {
         if ((!ori.player || ori.player.isOP()) && res.player) {
             if (res.player.length < 1) {
-                out.error("commands.generic.noTargetMatch");
-                return;
+                return out.error("commands.generic.noTargetMatch");
             }
             for (let pl of res.player) main(pl);
             return;
         }
-        if (!ori.player) {
-            out.error("commands.generic.noTargetMatch");
+        if (ori.player) {
+            main(ori.player);
             return;
         }
-        main(ori.player);
+        return out.error("commands.generic.noTargetMatch");
     });
     cmd.setup();
 });
@@ -36,7 +35,7 @@ function main(pl) {
             case 1:
                 const lv = pl.getLevel();
                 if (lv < 1) {
-                    pl.tell("发送失败：余额不足");
+                    pl.tell("§c红包发送失败：余额不足");
                     return;
                 }
                 send(pl, lv);
@@ -106,7 +105,7 @@ function send(pl, lv) {
         const lv = Math.floor(args[2]);
         const ct = args[1] * args[2];
         if (ct > pl.getLevel()) {
-            pl.tell("发送失败：余额不足");
+            pl.tell("§c红包发送失败：余额不足");
             return;
         }
         pl.addLevel(-ct);
@@ -120,6 +119,6 @@ function send(pl, lv) {
             time: system.getTimeStr(),
             recipient: {},
         });
-        pl.talkAs(`[红包] ${args[0] || "我发送了一个红包"}`);
+        pl.tell(`红包${args[0]}发送成功`);
     });
 }

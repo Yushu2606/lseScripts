@@ -12,11 +12,15 @@ mc.listen("onJoin", (pl) => {
         (_, arg) => {
             if (!arg) {
                 db.set(pl.xuid, true);
-                mc.broadcast(`欢迎新人${pl.realName}加入源域！`);
+                mc.broadcast(`欢迎${pl.realName}加入源域！`);
             } else pl.kick("§l§4未同意用户协议，请勿使用本服提供的任何服务！");
         }
     );
 });
-ll.export(() => {
-    return db.listKey().length;
-}, "getPlayersCount");
+ll.export(
+    () => {
+        return db.listKey().length;
+    },
+    "playersCount",
+    "get"
+);

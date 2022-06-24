@@ -15,8 +15,7 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_, ori, out, res) => {
         if ((!ori.player || ori.player.isOP()) && res.player) {
             if (res.player.length < 1) {
-                out.error("commands.generic.noTargetMatch");
-                return;
+                return out.error("commands.generic.noTargetMatch");
             }
             for (let pl of res.player) main(pl);
             return;
@@ -25,13 +24,13 @@ mc.listen("onServerStarted", () => {
             main(ori.player);
             return;
         }
-        out.error("commands.generic.noTargetMatch");
+        return out.error("commands.generic.noTargetMatch");
     });
     cmd.setup();
 });
 function main(pl) {
     let fm = mc.newSimpleForm();
-    fm.setTitle(`回收商店`);
+    fm.setTitle("回收商店");
     for (let item of recycle)
         fm.addButton(`${item.name}\n${item.price}经验值/个`, item.icon);
     pl.sendForm(fm, (_, arg) => {
@@ -41,7 +40,7 @@ function main(pl) {
         for (let item of pl.getInventory().getAllItems())
             if (item.type == it.id) count += item.count;
         if (count < 1) {
-            pl.tell("回收失败：物品不足");
+            pl.tell("§c物品回收失败：物品不足");
             return;
         }
         confirm(pl, it, count);
@@ -66,7 +65,7 @@ function confirm(pl, itemData, count) {
             count += item.count;
         }
         if (count < args[3]) {
-            pl.tell("回收失败：物品不足");
+            pl.tell("§c物品回收失败：物品不足");
             return;
         }
         const its = inv.getAllItems();
@@ -81,6 +80,8 @@ function confirm(pl, itemData, count) {
         const add = Math.round(args[3] * itemData.price * (1 - serviceCharge));
         pl.addExperience(add);
         pl.refreshItems();
-        pl.tell(`回收物品${itemData.name} * ${args[3]}成功（获得${add}经验值）`);
+        pl.tell(
+            `物品${itemData.name} * ${args[3]}回收成功（获得${add}经验值）`
+        );
     });
 }

@@ -39,8 +39,7 @@ mc.listen("onServerStarted", () => {
                     ips: ips,
                 });
                 File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
-                out.success("封禁成功");
-                break;
+                return out.success("封禁成功");
             case "remove":
                 db = db.filter((item) => {
                     return (
@@ -49,15 +48,14 @@ mc.listen("onServerStarted", () => {
                     );
                 });
                 File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
-                out.success("解禁成功");
-                break;
+                return out.success("解禁成功");
             case "update":
                 jsonstr = File.readFrom("blocklist.json");
                 if (!jsonstr) {
                     File.writeTo("blocklist.json", (jsonstr = "[]"));
                 }
                 db = data.parseJson(jsonstr);
-                out.success("更新成功");
+                return out.success("更新成功");
         }
     });
     cmd.setup();

@@ -14,8 +14,7 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_, ori, out, res) => {
         if ((!ori.player || ori.player.isOP()) && res.player) {
             if (res.player.length < 1) {
-                out.error("commands.generic.noTargetMatch");
-                return;
+                return out.error("commands.generic.noTargetMatch");
             }
             for (let pl of res.player) main(pl);
             return;
@@ -24,7 +23,7 @@ mc.listen("onServerStarted", () => {
             main(ori.player);
             return;
         }
-        out.error("commands.generic.noTargetMatch");
+        return out.error("commands.generic.noTargetMatch");
     });
     cmd.setup();
 });
@@ -68,7 +67,7 @@ function main(pl) {
             }
             if (pl.getLevel() < initialFunding) {
                 pl.tell(
-                    `店铺创建失败：余额不足（需要${initialFunding}级经验）`
+                    `§c店铺创建失败：余额不足（需要${initialFunding}级经验）`
                 );
                 main(pl);
                 return;
@@ -93,7 +92,7 @@ function createShop(pl) {
         }
         if (pl.getLevel() < initialFunding) {
             pl.tell(
-                `店铺${args[1]}创建失败：余额不足（需要${initialFunding}级经验）`
+                `§c店铺${args[1]}创建失败：余额不足（需要${initialFunding}级经验）`
             );
             main(pl);
             return;
@@ -250,7 +249,7 @@ function itemBuy(pl, owner, item) {
             Math.round(1 / item.price),
             num > count ? count : num
         );
-    } else fm.addLabel(`将购买1个`);
+    } else fm.addLabel("将购买1个");
     pl.sendForm(fm, (_, args) => {
         if (!args) {
             itemList(pl, owner);
@@ -259,23 +258,23 @@ function itemBuy(pl, owner, item) {
         let shop = db.get(owner);
         let num = args[3] ?? 1;
         if (!shop.items[item.guid]) {
-            pl.tell(`${item.name}§r * ${num}购买失败：已被买走`);
+            pl.tell(`§c${item.name}§r * ${num}购买失败：已被买走`);
             return;
         }
         let itemNBT = NBT.parseSNBT(shop.items[item.guid].snbt);
         let count = Number(itemNBT.getTag("Count"));
         if (count < num) {
-            pl.tell(`${item.name}§r * ${num}购买失败：数量过多`);
+            pl.tell(`§c${item.name}§r * ${num}购买失败：数量过多`);
             return;
         }
         let cost = Math.round(num * shop.items[item.guid].price);
         if (cost > pl.getLevel()) {
-            pl.tell(`${item.name}§r * ${num}购买失败：余额不足`);
+            pl.tell(`§c${item.name}§r * ${num}购买失败：余额不足`);
             return;
         }
         let newItem = mc.newItem(itemNBT.setByte("Count", num));
         if (!pl.getInventory().hasRoomFor(newItem)) {
-            pl.tell(`${item.name}§r * ${num}购买失败：背包已满`);
+            pl.tell(`§c${item.name}§r * ${num}购买失败：背包已满`);
             return;
         }
         let history = {
@@ -303,9 +302,7 @@ function itemBuy(pl, owner, item) {
             );
         } else shop.pending.push(history);
         db.set(shop.owner, shop);
-        pl.tell(
-            `物品${history.item.name}§r * ${num}购买成功（花费${cost}级经验）`
-        );
+        pl.tell(`${history.item.name}§r * ${num}购买成功（花费${cost}级经验）`);
     });
 }
 function itemUpload(pl) {
@@ -323,7 +320,7 @@ function itemUpload(pl) {
     }
     let fm = mc.newCustomForm();
     if (itemsmsg.length < 1) {
-        pl.tell("物品上架失败：背包为空");
+        pl.tell("§c物品上架失败：背包为空");
         shopItem(pl);
         return;
     }
@@ -339,21 +336,21 @@ function itemUpload(pl) {
         }
         if (isNaN(args[2])) {
             pl.tell(
-                `物品${args[1]}§r * ${args[3]}上架失败：价格输入错误（非数字）`
+                `§c物品${args[1]}§r * ${args[3]}上架失败：价格输入错误（非数字）`
             );
             shopItem(pl);
             return;
         }
         if (args[2] <= 0) {
             pl.tell(
-                `物品${args[1]}§r * ${args[3]}上架失败：价格输入错误（非正数）`
+                `§c物品${args[1]}§r * ${args[3]}上架失败：价格输入错误（非正数）`
             );
             shopItem(pl);
             return;
         }
         let item = items[args[0]];
         if (item.count < args[3]) {
-            pl.tell(`物品${args[1]}§r * ${args[3]}上架失败：数量不足`);
+            pl.tell(`§c物品${args[1]}§r * ${args[3]}上架失败：数量不足`);
             shopItem(pl);
             return;
         }
@@ -371,7 +368,7 @@ function itemUpload(pl) {
         else
             item.setNbt(itemNBT.setByte("Count", Number(item.count - args[3])));
         pl.refreshItems();
-        pl.talkAs(`[集市] 我上架了${args[1] || item.name}`);
+        pl.tell(`物品${args[1]}§r * ${args[3]}上架成功`);
         shopItem(pl);
     });
 }
@@ -392,27 +389,27 @@ function itemManagement(pl, arg) {
         let shop = db.get(pl.xuid);
         if (isNaN(args[1] ?? item.price)) {
             pl.tell(
-                `物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非数字）`
+                `§c物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非数字）`
             );
             shopItem(pl);
             return;
         }
         if ((args[1] ?? item.price) <= 0) {
             pl.tell(
-                `物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非正数）`
+                `§c物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非正数）`
             );
             shopItem(pl);
             return;
         }
         if (!item) {
-            pl.tell(`物品${args[0]}§r * ${args[2]}修改失败：已被买走`);
+            pl.tell(`§c物品${args[0]}§r * ${args[2]}修改失败：已被买走`);
             shopItem(pl);
             return;
         }
         let itemNBT = NBT.parseSNBT(shop.items[item.guid].snbt);
         let count = Number(itemNBT.getTag("Count"));
         if (count < args[2]) {
-            pl.tell(`物品${args[0]}§r * ${args[2]}修改失败：下架过多`);
+            pl.tell(`§c物品${args[0]}§r * ${args[2]}修改失败：下架过多`);
             shopItem(pl);
             return;
         }
@@ -422,7 +419,7 @@ function itemManagement(pl, arg) {
         if (args[2] != count) {
             let it = mc.newItem(itemNBT.setByte("Count", count - args[2]));
             if (!pl.getInventory().hasRoomFor(it)) {
-                pl.tell(`物品${args[0]}§r * ${args[2]}修改失败：背包已满`);
+                pl.tell(`§c物品${args[0]}§r * ${args[2]}修改失败：背包已满`);
                 shopItem(pl);
                 return;
             }

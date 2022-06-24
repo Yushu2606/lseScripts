@@ -29,7 +29,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
             continue;
         re = false;
         pl.tell(
-            `你不能破坏${
+            `§c你不能破坏${
                 pl.xuid == key ? "你自己" : data.xuid2name(key)
             }的核心方块`,
             4
@@ -86,7 +86,7 @@ function sendInit(pl) {
                         options.push(data.xuid2name(key));
                     }
                     if (options.length < 1) {
-                        pl.tell("暂无可组队用户");
+                        pl.tell("§c暂无可组队用户");
                         sendInit(pl);
                         return;
                     }
@@ -100,7 +100,7 @@ function sendInit(pl) {
                         }
                         let pl1 = mc.getPlayer(options[args[0]]);
                         if (!pl1) {
-                            pl.tell(`${options[args[0]]}已下线`);
+                            pl.tell(`§c${options[args[0]]}已离线`);
                             sendInit(pl);
                             return;
                         }
@@ -115,7 +115,7 @@ function sendInit(pl) {
                                 }
                                 if (!arg) {
                                     pl.tell(
-                                        `与${pl1.realName}的组队请求被拒绝`
+                                        `§c与${pl1.realName}的组队请求被拒绝`
                                     );
                                     sendInit(pl);
                                     return;

@@ -20,7 +20,7 @@ setInterval(() => {
     let pls = mc.getOnlinePlayers();
     for (let pl of pls) {
         pl.removeSidebar();
-        pl.removeBossBar();
+        pl.removeBossBar(0);
         let pldv = pl.getDevice();
         let list = {};
         list[
@@ -81,7 +81,12 @@ setInterval(() => {
                     (next[pl] = next[pl] < 300 - step ? next[pl] + step : 0) /
                         100
                 );
-                pl.setBossBar(Object.keys(list)[index], next[pl] % 100, index);
+                pl.setBossBar(
+                    0,
+                    Object.keys(list)[index],
+                    next[pl] % 100,
+                    index
+                );
                 break;
         }
     }
@@ -93,19 +98,18 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_, ori, out, res) => {
         if ((!ori.player || ori.player.isOP()) && res.player) {
             if (res.player.length < 1) {
-                out.error("commands.generic.noTargetMatch");
-                return;
+                return out.error("commands.generic.noTargetMatch");
             }
             for (let pl of res.player) {
                 setup(pl);
             }
             return;
         }
-        if (!ori.player) {
-            out.error("commands.generic.noTargetMatch");
+        if (ori.player) {
+            setup(ori.player);
             return;
         }
-        setup(ori.player);
+        return out.error("commands.generic.noTargetMatch");
     });
     cmd.setup();
 });
@@ -115,8 +119,11 @@ function setup(pl) {
     fm.addStepSlider("位置", ["关闭", "计分板", "血条"], db.get(pl.xuid) ?? 0);
     pl.sendForm(fm, (_, args) => {
         if (!args) return;
-        if (args[0] == db.get(pl.xuid)) return;
+        let old = db.get(pl.xuid);
+        if (args[0] == old) return;
         db.set(pl.xuid, args[0]);
-        pl.tell("修改成功");
+        pl.tell(
+            `信息栏${args[0] ? (old ? "状态修改成功" : "已启用") : "已禁用"}`
+        );
     });
 }

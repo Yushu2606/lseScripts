@@ -13,8 +13,7 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_, ori, out, res) => {
         if ((!ori.player || ori.player.isOP()) && res.player) {
             if (res.player.length < 1) {
-                out.error("commands.generic.noTargetMatch");
-                return;
+                return out.error("commands.generic.noTargetMatch");
             }
             for (let pl of res.player) main(pl);
             return;
@@ -23,14 +22,14 @@ mc.listen("onServerStarted", () => {
             main(ori.player);
             return;
         }
-        out.error("commands.generic.noTargetMatch");
+        return out.error("commands.generic.noTargetMatch");
     });
     cmd.setup();
 });
 function main(pl) {
     let level = pl.getLevel();
     if (level < condition) {
-        pl.tell(`转账失败：余额不足（需大于${condition}级经验）`);
+        pl.tell(`§c转账失败：余额不足（需大于${condition}级经验）`);
         return;
     }
     let pls = [];
@@ -40,7 +39,7 @@ function main(pl) {
         }
     }
     if (pls.length < 1) {
-        pl.tell("转账失败：目前没有可转账用户");
+        pl.tell("§c转账失败：目前没有可转账用户");
         return;
     }
     let fm = mc.newCustomForm();
@@ -54,20 +53,20 @@ function main(pl) {
         }
         let pl1 = mc.getPlayer(pls[args[0]]);
         if (!pl1) {
-            pl.tell(`转账失败：${pls[args[0]]}已离线`);
+            pl.tell(`§c转账失败：${pls[args[0]]}已离线`);
             return;
         }
         if (isNaN(args[1])) {
-            pl.tell(`转账失败：经验等级输入错误（非数字）`);
+            pl.tell("§c转账失败：经验等级输入错误（非数字）");
             return;
         }
         let inp = Math.round(Number(args[1]));
         if (inp < 1) {
-            pl.tell(`转账失败：经验等级输入错误（非正数）`);
+            pl.tell("§c转账失败：经验等级输入错误（非正数）");
             return;
         }
         if (inp > pl.getLevel()) {
-            pl.tell(`转账失败：经验等级输入错误（余额不足）`);
+            pl.tell("§c转账失败：经验等级输入错误（余额不足）");
             return;
         }
         pl.addLevel(-inp);

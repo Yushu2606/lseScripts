@@ -12,8 +12,7 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_, ori, out, res) => {
         if ((!ori.player || ori.player.isOP()) && res.player) {
             if (res.player.length < 1) {
-                out.error("commands.generic.noTargetMatch");
-                return;
+                return out.error("commands.generic.noTargetMatch");
             }
             for (let pl of res.player) main(pl);
             return;
@@ -22,7 +21,7 @@ mc.listen("onServerStarted", () => {
             main(ori.player);
             return;
         }
-        out.error("commands.generic.noTargetMatch");
+        return out.error("commands.generic.noTargetMatch");
     });
     cmd.setup();
 });
@@ -34,7 +33,7 @@ function main(pl) {
         }
     }
     if (pls.length < 1) {
-        pl.tell("送达失败：目前没有可送达用户");
+        pl.tell("§c物品送达失败：暂无可送达用户");
         return;
     }
     let itemsmsg = [];
@@ -50,7 +49,7 @@ function main(pl) {
         items.push(item);
     }
     if (itemsmsg.length < 1) {
-        pl.tell("送达失败：背包为空");
+        pl.tell("§c物品送达失败：背包为空");
         return;
     }
     let fm = mc.newCustomForm();
@@ -64,7 +63,7 @@ function main(pl) {
         }
         let item = items[args[1]];
         if (item.count < args[2]) {
-            pl.tell("送达失败：数量不足");
+            pl.tell("§c物品送达失败：数量不足");
             return;
         }
         let level = pl.getLevel();
@@ -72,13 +71,13 @@ function main(pl) {
             serviceCharge[1] + serviceCharge[1] * level * 0.1
         );
         if (level < condition) {
-            pl.tell(`送达失败：余额不足（需要${condition}级经验）`);
+            pl.tell(`§c物品送达失败：余额不足（需要${condition}级经验）`);
             main(pl);
             return;
         }
         let pl1 = mc.getPlayer(pls[args[0]]);
         if (!pl1) {
-            pl.tell(`送达失败：${pls[args[0]]}已离线`);
+            pl.tell(`§c物品送达失败：${pls[args[0]]}已离线`);
             return;
         }
         let reduce = Math.round(
@@ -87,7 +86,7 @@ function main(pl) {
         let itemNbt = item.getNbt();
         let newitem = mc.newItem(itemNbt.setByte("Count", Number(args[2])));
         if (!pl1.hasRoomFor(newitem)) {
-            pl.tell(`送达失败：${pls[args[0]]}背包已满`);
+            pl.tell(`§c物品送达失败：${pls[args[0]]}背包已满`);
             return;
         }
         pl.addLevel(-reduce);
