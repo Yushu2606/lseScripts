@@ -397,7 +397,7 @@ function itemManagement(pl, arg) {
             shopItem(pl);
             return;
         }
-        if (args[1] ?? item.price <= 0) {
+        if ((args[1] ?? item.price) <= 0) {
             pl.tell(
                 `物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非正数）`
             );
