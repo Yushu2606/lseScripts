@@ -1,6 +1,9 @@
 "use strict";
 ll.registerPlugin("SLULA", "用户协议", [1, 0, 0]);
 
+const config = new JsonConfigFile("plugins\\SLULA\\config.json");
+const server = config.init("server", 0);
+config.close();
 const db = new KVDatabase("plugins\\SLULA\\data");
 mc.listen("onJoin", (pl) => {
     if (db.get(pl.xuid)) return;
@@ -12,7 +15,9 @@ mc.listen("onJoin", (pl) => {
         (pl, arg) => {
             if (!arg) {
                 db.set(pl.xuid, true);
-                mc.broadcast(`欢迎${pl.realName}加入源域！`);
+                mc.broadcast(
+                    `欢迎${pl.realName}加入${["源域", "方屿"][server]}！`
+                );
             } else pl.kick("§l§4未同意用户协议，请勿使用本服提供的任何服务！");
         }
     );
