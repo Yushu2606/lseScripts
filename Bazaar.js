@@ -5,6 +5,53 @@ const config = new JsonConfigFile("plugins\\Bazaar\\config.json");
 const command = config.init("command", "bazaar");
 const initialFunding = config.init("initialFunding", 7);
 const serviceCharge = config.init("serviceCharge", 0.05);
+const currencyType = config.init("currencyType", "llmoney");
+let money = (() => {
+    switch (currencyType) {
+        case "llmoney":
+            return {
+                add: (pl, money) => {
+                    return money.add(pl.xuid, money);
+                },
+                reduce: (pl, money) => {
+                    return money.reduce(pl.xuid, money);
+                },
+                get: (pl) => {
+                    return money.get(pl.xuid);
+                },
+                name: config.init("currencyName", "货币"),
+            };
+        case "scoreboard":
+            let scoreboard = config.init("scoreboard", "money");
+            return {
+                add: (pl, money) => {
+                    pl.addScore(scoreboard, money);
+                },
+                reduce: (pl, money) => {
+                    pl.reduceScore(scoreboard, money);
+                },
+                get: (pl) => {
+                    pl.getScore(scoreboard);
+                },
+                name: mc.getScoreObjective(scoreboard).displayName,
+            };
+        case "xplevel":
+            return {
+                add: (pl, money) => {
+                    pl.addLevel(money);
+                },
+                reduce: (pl, money) => {
+                    pl.addLevel(-money);
+                },
+                get: (pl) => {
+                    pl.getLevel();
+                },
+                name: "级经验",
+            };
+        default:
+            throw "配置项异常！";
+    }
+})();
 config.close();
 const db = new KVDatabase("plugins\\Bazaar\\data");
 mc.listen("onServerStarted", () => {
@@ -32,14 +79,14 @@ mc.listen("onJoin", (pl) => {
     if (!shop || shop.pending.length < 1) return;
     while (shop.pending.length > 0) {
         let get = Math.round(
-            history.count * history.item.price * 7 * (1 - history.serviceCharge)
+            history.count * history.item.price * (1 - history.serviceCharge)
         );
-        pl.addExperience(get);
+        money.add(pl, get);
         shop.history.push(shop.pending.shift());
         pl.tell(
             `${data.xuid2name(history.buyer)}于${history.time}购买了${
                 history.item.name
-            }§r * ${history.count}（您获得了${get}经验值）`
+            }§r * ${history.count}（您获得了${get}${money.name}）`
         );
     }
     db.set(pl.xuid, shop);
@@ -65,9 +112,9 @@ function main(pl) {
                 shopManagement(pl);
                 return;
             }
-            if (pl.getLevel() < initialFunding) {
+            if (money.get(pl) < initialFunding) {
                 pl.tell(
-                    `§c店铺创建失败：余额不足（需要${initialFunding}级经验）`
+                    `§c店铺创建失败：余额不足（需要${initialFunding}${money.name}）`
                 );
                 main(pl);
                 return;
@@ -81,7 +128,7 @@ function main(pl) {
 function createShop(pl) {
     let fm = mc.newCustomForm();
     fm.setTitle("创建店铺");
-    fm.addLabel(`将花费${initialFunding}级经验创建店铺`);
+    fm.addLabel(`将花费${initialFunding}${money.name}创建店铺`);
     fm.addInput("店铺名称", "字符串（可空）");
     fm.addInput("店铺简介", "字符串（可空）");
     fm.addInput("店铺标志", "字符串（可空）");
@@ -90,14 +137,14 @@ function createShop(pl) {
             main(pl);
             return;
         }
-        if (pl.getLevel() < initialFunding) {
+        if (money.get(pl) < initialFunding) {
             pl.tell(
-                `§c店铺${args[1]}创建失败：余额不足（需要${initialFunding}级经验）`
+                `§c店铺${args[1]}创建失败：余额不足（需要${initialFunding}${money.name}）`
             );
             main(pl);
             return;
         }
-        pl.addLevel(-initialFunding);
+        money.reduce(pl, initialFunding);
         db.set(pl.xuid, {
             owner: pl.xuid,
             guid: system.randomGuid(),
@@ -226,7 +273,7 @@ function shopHistroy(pl) {
             historyData.buyer
         )}\n物品：${historyData.item.name}§r\n数量：${
             historyData.count
-        }\n单价：${historyData.item.price}级经验\n物品NBT：${
+        }\n单价：${historyData.item.price}${money.name}\n物品NBT：${
             historyData.item.snbt
         }`;
     }
@@ -243,7 +290,7 @@ function itemBuy(pl, owner, item) {
     fm.addLabel(`价格：${item.price}/个`);
     let count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
     if (count > 1) {
-        let num = pl.getLevel() / item.price;
+        let num = money.get(pl) / item.price;
         fm.addSlider(
             "选择购买数量",
             Math.round(1 / item.price),
@@ -268,7 +315,7 @@ function itemBuy(pl, owner, item) {
             return;
         }
         let cost = Math.round(num * shop.items[item.guid].price);
-        if (cost > pl.getLevel()) {
+        if (cost > money.get(pl)) {
             pl.tell(`§c${item.name}§r * ${num}购买失败：余额不足`);
             return;
         }
@@ -289,20 +336,22 @@ function itemBuy(pl, owner, item) {
             shop.items[item.guid].snbt = itemNBT
                 .setByte("Count", count - num)
                 .toSNBT();
-        pl.addLevel(-cost);
+        money.reduce(pl, cost);
         pl.giveItem(newItem);
         pl.refreshItems();
         let ownerpl = mc.getPlayer(owner);
         if (ownerpl) {
-            let get = Math.round(cost * 7 * (1 - serviceCharge));
-            ownerpl.addExperience(get);
+            let get = Math.round(cost * (1 - serviceCharge));
+            money.add(ownerpl, get);
             shop.history.push(history);
             ownerpl.tell(
-                `${pl.realName}于${history.time}购买了${history.item.name}§r * ${num}（您获得了${get}经验值）`
+                `${pl.realName}于${history.time}购买了${history.item.name}§r * ${num}（您获得了${get}${money.name}）`
             );
         } else shop.pending.push(history);
         db.set(shop.owner, shop);
-        pl.tell(`${history.item.name}§r * ${num}购买成功（花费${cost}级经验）`);
+        pl.tell(
+            `${history.item.name}§r * ${num}购买成功（花费${cost}${money.name}）`
+        );
     });
 }
 function itemUpload(pl) {
