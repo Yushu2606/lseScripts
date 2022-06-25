@@ -44,7 +44,7 @@ function sendInit(pl) {
         "请选择类别",
         ["经典单方块", "与他人合作"],
         ["textures/ui/sword", "textures/ui/FriendsIcon"],
-        (_, arg) => {
+        (pl, arg) => {
             if (arg == null) {
                 sendInit(pl);
                 return;
@@ -93,7 +93,7 @@ function sendInit(pl) {
                     let fm = mc.newCustomForm();
                     fm.setTitle("与他人合作");
                     fm.addDropdown("选择合作用户", options);
-                    pl.sendForm(fm, (_, args) => {
+                    pl.sendForm(fm, (pl, args) => {
                         if (!args) {
                             sendInit(pl);
                             return;
@@ -109,7 +109,7 @@ function sendInit(pl) {
                             `${pl.realName}请求与您组队`,
                             "同意",
                             "拒绝",
-                            (_, arg) => {
+                            (pl1, arg) => {
                                 if (!mc.getPlayer(pl.realName)) {
                                     return;
                                 }

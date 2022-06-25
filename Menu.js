@@ -21,7 +21,7 @@ mc.listen("onServerStarted", () => {
         );
         cmd.optional("player", ParamType.Player);
         cmd.overload("player");
-        cmd.setCallback((_, ori, out, res) => {
+        cmd.setCallback((_cmd, ori, out, res) => {
             if ((!ori.player || ori.player.isOP()) && res.player) {
                 if (res.player.length < 1) {
                     return out.error("commands.generic.noTargetMatch");
@@ -56,7 +56,7 @@ function menu(pl, mu) {
         if (bt.opOnly && !pl.isOP()) continue;
         fm.addButton(bt.text, bt.image ? bt.image : "");
     }
-    pl.sendForm(fm, (_, arg) => {
+    pl.sendForm(fm, (pl, arg) => {
         if (arg == null) {
             const back = menus.get("back", "");
             if (!back) return;

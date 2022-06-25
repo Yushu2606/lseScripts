@@ -9,10 +9,10 @@ const db = new JsonConfigFile("plugins\\RecycleShop\\data.json");
 const recycle = db.init("recycle", []);
 db.close();
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开回收商店菜单。", PermType.Any);
+    const cmd = mc.newCommand(command, "打开回收商店。", PermType.Any);
     cmd.optional("player", ParamType.Player);
     cmd.overload("player");
-    cmd.setCallback((_, ori, out, res) => {
+    cmd.setCallback((_cmd, ori, out, res) => {
         if ((!ori.player || ori.player.isOP()) && res.player) {
             if (res.player.length < 1) {
                 return out.error("commands.generic.noTargetMatch");
@@ -33,14 +33,15 @@ function main(pl) {
     fm.setTitle("回收商店");
     for (let item of recycle)
         fm.addButton(`${item.name}\n${item.price}经验值/个`, item.icon);
-    pl.sendForm(fm, (_, arg) => {
+    pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return;
         const it = recycle[arg];
         let count = 0;
         for (let item of pl.getInventory().getAllItems())
             if (item.type == it.id) count += item.count;
         if (count < 1) {
-            pl.tell("§c物品回收失败：物品不足");
+            pl.tell(`§c物品${it.name}回收失败：数量不足`);
+            main(pl);
             return;
         }
         confirm(pl, it, count);
@@ -53,7 +54,7 @@ function confirm(pl, itemData, count) {
     fm.addLabel(`回收价：${itemData.price}/个`);
     fm.addLabel(`当前税率：${serviceCharge * 100}％`);
     fm.addSlider("选择回收数量", 1, count);
-    pl.sendForm(fm, (_, args) => {
+    pl.sendForm(fm, (pl, args) => {
         if (!args) {
             main(pl);
             return;
@@ -65,7 +66,9 @@ function confirm(pl, itemData, count) {
             count += item.count;
         }
         if (count < args[3]) {
-            pl.tell("§c物品回收失败：物品不足");
+            pl.tell(
+                `§c物品${itemData.name}回收失败：数量不足（只有${count}个）`
+            );
             return;
         }
         const its = inv.getAllItems();
@@ -83,5 +86,6 @@ function confirm(pl, itemData, count) {
         pl.tell(
             `物品${itemData.name} * ${args[3]}回收成功（获得${add}经验值）`
         );
+        main(pl);
     });
 }

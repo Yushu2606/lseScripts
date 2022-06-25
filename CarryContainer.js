@@ -57,7 +57,7 @@ mc.listen("onTick", () => {
     for (let xuid of db.listKey()) {
         const player = mc.getPlayer(xuid);
         if (!player) continue;
-        player.tell(`你正在搬运${db.get(xuid).name}`, 5);
+        player.tell(`正在搬运${db.get(xuid).name}`, 5);
     }
 });
 mc.listen("onMove", (player) => {

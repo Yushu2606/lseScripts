@@ -11,7 +11,7 @@ mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand(command, "打开物品集市。", PermType.Any);
     cmd.optional("player", ParamType.Player);
     cmd.overload("player");
-    cmd.setCallback((_, ori, out, res) => {
+    cmd.setCallback((_cmd, ori, out, res) => {
         if ((!ori.player || ori.player.isOP()) && res.player) {
             if (res.player.length < 1) {
                 return out.error("commands.generic.noTargetMatch");
@@ -59,7 +59,7 @@ function main(pl) {
             shop.icon
         );
     }
-    pl.sendForm(fm, (_, arg) => {
+    pl.sendForm(fm, (pl, arg) => {
         if (arg == 0) {
             if (db.get(pl.xuid)) {
                 shopManagement(pl);
@@ -85,7 +85,7 @@ function createShop(pl) {
     fm.addInput("店铺名称", "字符串（可空）");
     fm.addInput("店铺简介", "字符串（可空）");
     fm.addInput("店铺标志", "字符串（可空）");
-    pl.sendForm(fm, (_, args) => {
+    pl.sendForm(fm, (pl, args) => {
         if (!args) {
             main(pl);
             return;
@@ -127,7 +127,7 @@ function shopManagement(pl) {
     fm.addButton("信息设置");
     fm.addButton("物品管理");
     fm.addButton("查看历史纪录");
-    pl.sendForm(fm, (_, arg) => {
+    pl.sendForm(fm, (pl, arg) => {
         switch (arg) {
             case 0:
                 shopInfo(pl);
@@ -158,7 +158,7 @@ function itemList(pl, owner) {
                 )}\n价格：${item.price}/个`
             );
         }
-    pl.sendForm(fm, (_, arg) => {
+    pl.sendForm(fm, (pl, arg) => {
         if (arg == null) {
             main(pl);
             return;
@@ -173,7 +173,7 @@ function shopInfo(pl) {
     fm.addInput("店铺名称", "字符串（可空）", shop.name);
     fm.addInput("店铺简介", "字符串（可空）", shop.intro);
     fm.addInput("店铺标志", "字符串（可空）", shop.icon);
-    pl.sendForm(fm, (_, args) => {
+    pl.sendForm(fm, (pl, args) => {
         if (!args) {
             shopManagement(pl);
             return;
@@ -200,7 +200,7 @@ function shopItem(pl) {
             )}\n价格：${item.price}/个`
         );
     }
-    pl.sendForm(fm, (_, arg) => {
+    pl.sendForm(fm, (pl, arg) => {
         if (arg == null) {
             shopManagement(pl);
             return;
@@ -250,7 +250,7 @@ function itemBuy(pl, owner, item) {
             num > count ? count : num
         );
     } else fm.addLabel("将购买1个");
-    pl.sendForm(fm, (_, args) => {
+    pl.sendForm(fm, (pl, args) => {
         if (!args) {
             itemList(pl, owner);
             return;
@@ -329,7 +329,7 @@ function itemUpload(pl) {
     fm.addInput("物品名称", "字符串（可空）");
     fm.addInput("物品单价", "数字");
     fm.addSlider("上架数量", 1, 64);
-    pl.sendForm(fm, (_, args) => {
+    pl.sendForm(fm, (pl, args) => {
         if (!args) {
             shopItem(pl);
             return;
@@ -381,7 +381,7 @@ function itemManagement(pl, arg) {
     fm.addInput("物品价格", "数字（可空）", item.price);
     let count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
     fm.addSlider("上架数量", 0, count, 1, count);
-    pl.sendForm(fm, (_, args) => {
+    pl.sendForm(fm, (pl, args) => {
         if (!args) {
             shopItem(pl);
             return;

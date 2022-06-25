@@ -1,12 +1,15 @@
 "use strict";
 ll.registerPlugin("RedPacket", "红包", [1, 0, 0]);
 
+const config = new JsonConfigFile("plugins\\RedPacket\\config.json");
+const command = config.init("command", "redpacket");
+config.close();
 let db = new KVDatabase("plugins\\RedPacket\\data");
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand("redpacket", "红包菜单。", PermType.Any);
+    const cmd = mc.newCommand(command, "打开红包菜单。", PermType.Any);
     cmd.optional("player", ParamType.Player);
     cmd.overload("player");
-    cmd.setCallback((_, ori, out, res) => {
+    cmd.setCallback((_cmd, ori, out, res) => {
         if ((!ori.player || ori.player.isOP()) && res.player) {
             if (res.player.length < 1) {
                 return out.error("commands.generic.noTargetMatch");
@@ -27,16 +30,16 @@ function main(pl) {
     fm.setTitle("红包菜单");
     fm.addButton("红包列表");
     fm.addButton("发送红包");
-    pl.sendForm(fm, (_, arg) => {
+    pl.sendForm(fm, (pl, arg) => {
         switch (arg) {
             case 0:
                 list(pl);
-                return;
+                break;
             case 1:
                 const lv = pl.getLevel();
                 if (lv < 1) {
                     pl.tell("§c红包发送失败：余额不足");
-                    return;
+                    break;
                 }
                 send(pl, lv);
         }
@@ -53,7 +56,7 @@ function list(pl) {
             }\n发送者：${data.xuid2name(rpdata.sender)}`
         );
     }
-    pl.sendForm(fm, (_, arg) => {
+    pl.sendForm(fm, (pl, arg) => {
         if (arg == null) {
             main(pl);
             return;
@@ -97,25 +100,24 @@ function send(pl, lv) {
     fm.addInput("信息", "字符串");
     fm.addSlider("发送数量", 1, lv);
     fm.addSlider("单个数额", 1, lv);
-    pl.sendForm(fm, (_, args) => {
+    pl.sendForm(fm, (pl, args) => {
         if (!args) {
             main(pl);
             return;
         }
-        const lv = Math.floor(args[2]);
-        const ct = args[1] * args[2];
-        if (ct > pl.getLevel()) {
+        const count = args[1] * args[2];
+        if (count > pl.getLevel()) {
             pl.tell("§c红包发送失败：余额不足");
             return;
         }
-        pl.addLevel(-ct);
+        pl.addLevel(-count);
         const uuid = system.randomGuid();
         db.set(uuid, {
             uuid: uuid,
             sender: pl.xuid,
             msg: args[0],
             count: args[1],
-            level: lv,
+            level: args[2],
             time: system.getTimeStr(),
             recipient: {},
         });

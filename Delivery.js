@@ -9,7 +9,7 @@ mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand(command, "打开快递菜单。", PermType.Any);
     cmd.optional("player", ParamType.Player);
     cmd.overload("player");
-    cmd.setCallback((_, ori, out, res) => {
+    cmd.setCallback((_cmd, ori, out, res) => {
         if ((!ori.player || ori.player.isOP()) && res.player) {
             if (res.player.length < 1) {
                 return out.error("commands.generic.noTargetMatch");
@@ -57,7 +57,7 @@ function main(pl) {
     fm.addDropdown("选择送达对象", pls);
     fm.addDropdown("物品", itemsmsg);
     fm.addSlider("数量", 1, 64);
-    pl.sendForm(fm, (_, args) => {
+    pl.sendForm(fm, (pl, args) => {
         if (!args) {
             return;
         }
@@ -96,8 +96,8 @@ function main(pl) {
         pl.refreshItems();
         pl1.giveItem(newitem);
         pl.tell(
-            `成功向${pl.realName}发送物品${item.name} * ${args[2]}（花费您${reduce}级经验）`
+            `向${pl.realName}发送物品${item.name}§r * ${args[2]}成功（花费${reduce}级经验）`
         );
-        pl.tell(`${pl.realName}向您发送了物品${item.name} * ${args[2]}`);
+        pl.tell(`${pl.realName}向您发送了物品${item.name}§r * ${args[2]}`);
     });
 }

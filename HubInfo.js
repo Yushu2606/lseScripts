@@ -1,6 +1,9 @@
 "use strict";
 ll.registerPlugin("HubInfo", "信息栏", [1, 0, 0]);
 
+const config = new JsonConfigFile("plugins\\HubInfo\\config.json");
+const serverName = config.init("serverName", "");
+config.close();
 const db = new KVDatabase("plugins\\HubInfo\\data");
 let ticks = [];
 let realTPMS = 0;
@@ -63,7 +66,7 @@ setInterval(() => {
                 pl.setSidebar(
                     `${pl.realName}在§${
                         "1234567890abcdefglmno"[Math.floor(Math.random() * 21)]
-                    }源域`,
+                    }${serverName}`,
                     list
                 );
                 break;
@@ -71,7 +74,7 @@ setInterval(() => {
                 list[
                     `${pl.realName}在§${
                         "1234567890abcdefglmno"[Math.floor(Math.random() * 21)]
-                    }源域`
+                    }${serverName}`
                 ] = 0;
                 let step = 25;
                 if (!(pl in next)) {
@@ -92,10 +95,10 @@ setInterval(() => {
     }
 }, 1000);
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand("hubinfo", "信息栏设置。", PermType.Any);
+    const cmd = mc.newCommand("hubinfo", "打开信息栏设置。", PermType.Any);
     cmd.optional("player", ParamType.Player);
     cmd.overload("player");
-    cmd.setCallback((_, ori, out, res) => {
+    cmd.setCallback((_cmd, ori, out, res) => {
         if ((!ori.player || ori.player.isOP()) && res.player) {
             if (res.player.length < 1) {
                 return out.error("commands.generic.noTargetMatch");
@@ -117,7 +120,7 @@ function setup(pl) {
     let fm = mc.newCustomForm();
     fm.setTitle("信息栏 - 设置");
     fm.addStepSlider("位置", ["关闭", "计分板", "血条"], db.get(pl.xuid) ?? 0);
-    pl.sendForm(fm, (_, args) => {
+    pl.sendForm(fm, (pl, args) => {
         if (!args) return;
         let old = db.get(pl.xuid);
         if (args[0] == old) return;
