@@ -11,7 +11,7 @@ mc.listen("onChat", (pl, msg) => {
         msg: msg,
         time: system.getTimeObj(),
     });
-    msgs.set("msgs", msgs);
+    db.set("msgs", msgs);
 });
 mc.listen("onJoin", (pl) => {
     for (let msg of msgs)
