@@ -10,11 +10,11 @@ let eco = (() => {
     switch (currencyType) {
         case "llmoney":
             return {
-                add: (pl, money) => {
-                    return money.add(pl.xuid, money);
+                add: (pl, m) => {
+                    return money.add(pl.xuid, m);
                 },
-                reduce: (pl, money) => {
-                    return money.reduce(pl.xuid, money);
+                reduce: (pl, m) => {
+                    return money.reduce(pl.xuid, m);
                 },
                 get: (pl) => {
                     return money.get(pl.xuid);
