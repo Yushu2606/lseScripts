@@ -13,46 +13,64 @@ mc.listen("onServerStarted", () => {
     cmd.mandatory("action", ParamType.Enum, "ChangeAction", 1);
     cmd.mandatory("action", ParamType.Enum, "OtherAction", 1);
     cmd.mandatory("player", ParamType.String);
-    cmd.mandatory("player2", ParamType.Player);
+    cmd.mandatory("players", ParamType.Player);
     cmd.optional("message", ParamType.String);
     cmd.overload(["ChangeAction", "player", "message"]);
-    cmd.overload(["ChangeAction", "player2", "message"]);
+    cmd.overload(["ChangeAction", "players", "message"]);
     cmd.overload(["OtherAction"]);
     cmd.setCallback((_cmd, _ori, out, res) => {
         switch (res.action) {
             case "add":
-                const pl = res.player2 ?? mc.getPlayer(res.player);
-                let ips = [];
-                if (pl) {
-                    let device = pl.getDevice();
-                    ips.push[
-                        device.ip.substring(0, device.ip.lastIndexOf(":"))
-                    ];
-                    pl.kick(
-                        `§r§b很抱歉，您已§l§c被封禁§r${
-                            res.message ? `\n§a信息：§r${res.message}` : ""
-                        }§r\n§e如有疑惑请在Telegram联系机器人§r§l@SourceLandFeedbackBot`
-                    );
+                if (res.players)
+                    for (let pl of res.players) {
+                        let ips = [];
+                        let device = pl.getDevice();
+                        ips.push(
+                            device.ip.substring(0, device.ip.lastIndexOf(":"))
+                        );
+                        pl.kick(
+                            `§r§b很抱歉，您已§l§c被封禁§r${
+                                res.message ? `\n§a信息：§r${res.message}` : ""
+                            }§r\n§e如有疑惑请在Telegram联系机器人§r§l@SourceLandFeedbackBot`
+                        );
+                        db.push({
+                            name: pl.realName,
+                            xuid: pl.xuid,
+                            message: res.message,
+                            ips: ips,
+                        });
+                    }
+                else if (res.player) {
+                    let pl = mc.getPlayer(res.player);
+                    let ips = [];
+                    if (pl) {
+                        let device = pl.getDevice();
+                        ips.push(
+                            device.ip.substring(0, device.ip.lastIndexOf(":"))
+                        );
+                        pl.kick(
+                            `§r§b很抱歉，您已§l§c被封禁§r${
+                                res.message ? `\n§a信息：§r${res.message}` : ""
+                            }§r\n§e如有疑惑请在Telegram联系机器人§r§l@SourceLandFeedbackBot`
+                        );
+                    }
+                    db.push({
+                        name: res.player,
+                        xuid: data.name2xuid(res.player),
+                        message: res.message,
+                        ips: ips,
+                    });
                 }
-                db.push({
-                    name: res.player2 ? res.player2.realName : res.player,
-                    xuid: res.player2
-                        ? res.player2.xuid
-                        : data.name2xuid(res.player),
-                    message: res.message,
-                    ips: ips,
-                });
                 File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
                 return out.success("封禁成功");
             case "remove":
-                db = db.filter((item) => {
-                    return item.xuid != res.player2
-                        ? res.player2.xuid
-                        : data.name2xuid(res.player) ||
-                          item.name.toLowerCase() != res.player2
-                        ? res.player2.realName.toLowerCase()
-                        : res.player.toLowerCase();
-                });
+                if (res.player)
+                    db = db.filter((item) => {
+                        return (
+                            item.xuid != data.name2xuid(res.player) ||
+                            item.name.toLowerCase() != res.player.toLowerCase()
+                        );
+                    });
                 File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
                 return out.success("解禁成功");
             case "update":
