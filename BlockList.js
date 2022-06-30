@@ -13,13 +13,15 @@ mc.listen("onServerStarted", () => {
     cmd.mandatory("action", ParamType.Enum, "ChangeAction", 1);
     cmd.mandatory("action", ParamType.Enum, "OtherAction", 1);
     cmd.mandatory("player", ParamType.String);
+    cmd.mandatory("player2", ParamType.Player);
     cmd.optional("message", ParamType.String);
     cmd.overload(["ChangeAction", "player", "message"]);
+    cmd.overload(["ChangeAction", "player2", "message"]);
     cmd.overload(["OtherAction"]);
     cmd.setCallback((_cmd, _ori, out, res) => {
         switch (res.action) {
             case "add":
-                const pl = mc.getPlayer(res.player);
+                const pl = res.player2 ?? mc.getPlayer(res.player);
                 let ips = [];
                 if (pl) {
                     let device = pl.getDevice();
@@ -33,8 +35,10 @@ mc.listen("onServerStarted", () => {
                     );
                 }
                 db.push({
-                    name: res.player,
-                    xuid: data.name2xuid(res.player),
+                    name: res.player2 ? res.player2.realName : res.player,
+                    xuid: res.player2
+                        ? res.player2.xuid
+                        : data.name2xuid(res.player),
                     message: res.message,
                     ips: ips,
                 });
@@ -42,10 +46,12 @@ mc.listen("onServerStarted", () => {
                 return out.success("封禁成功");
             case "remove":
                 db = db.filter((item) => {
-                    return (
-                        item.xuid != data.name2xuid(res.player) ||
-                        item.name.toLowerCase() != res.player.toLowerCase()
-                    );
+                    return item.xuid != res.player2
+                        ? res.player2.xuid
+                        : data.name2xuid(res.player) ||
+                          item.name.toLowerCase() != res.player2
+                        ? res.player2.realName.toLowerCase()
+                        : res.player.toLowerCase();
                 });
                 File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
                 return out.success("解禁成功");

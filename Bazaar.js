@@ -78,11 +78,12 @@ mc.listen("onJoin", (pl) => {
     let shop = db.get(pl.xuid);
     if (!shop || shop.pending.length < 1) return;
     while (shop.pending.length > 0) {
+        let history = shop.pending.shift();
         let get = Math.round(
             history.count * history.item.price * (1 - history.serviceCharge)
         );
         money.add(pl, get);
-        shop.history.push(shop.pending.shift());
+        shop.history.push(history);
         pl.tell(
             `${data.xuid2name(history.buyer)}于${history.time}购买了${
                 history.item.name
