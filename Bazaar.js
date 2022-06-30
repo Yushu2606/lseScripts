@@ -6,7 +6,7 @@ const command = config.init("command", "bazaar");
 const initialFunding = config.init("initialFunding", 7);
 const serviceCharge = config.init("serviceCharge", 0.05);
 const currencyType = config.init("currencyType", "llmoney");
-let money = (() => {
+let eco = (() => {
     switch (currencyType) {
         case "llmoney":
             return {
@@ -82,12 +82,12 @@ mc.listen("onJoin", (pl) => {
         let get = Math.round(
             history.count * history.item.price * (1 - history.serviceCharge)
         );
-        money.add(pl, get);
+        eco.add(pl, get);
         shop.history.push(history);
         pl.tell(
             `${data.xuid2name(history.buyer)}于${history.time}购买了${
                 history.item.name
-            }§r * ${history.count}（您获得了${get}${money.name}）`
+            }§r * ${history.count}（您获得了${get}${eco.name}）`
         );
     }
     db.set(pl.xuid, shop);
@@ -113,9 +113,9 @@ function main(pl) {
                 shopManagement(pl);
                 return;
             }
-            if (money.get(pl) < initialFunding) {
+            if (eco.get(pl) < initialFunding) {
                 pl.tell(
-                    `§c店铺创建失败：余额不足（需要${initialFunding}${money.name}）`
+                    `§c店铺创建失败：余额不足（需要${initialFunding}${eco.name}）`
                 );
                 main(pl);
                 return;
@@ -129,7 +129,7 @@ function main(pl) {
 function createShop(pl) {
     let fm = mc.newCustomForm();
     fm.setTitle("创建店铺");
-    fm.addLabel(`将花费${initialFunding}${money.name}创建店铺`);
+    fm.addLabel(`将花费${initialFunding}${eco.name}创建店铺`);
     fm.addInput("店铺名称", "字符串（可空）");
     fm.addInput("店铺简介", "字符串（可空）");
     fm.addInput("店铺标志", "字符串（可空）");
@@ -138,14 +138,14 @@ function createShop(pl) {
             main(pl);
             return;
         }
-        if (money.get(pl) < initialFunding) {
+        if (eco.get(pl) < initialFunding) {
             pl.tell(
-                `§c店铺${args[1]}创建失败：余额不足（需要${initialFunding}${money.name}）`
+                `§c店铺${args[1]}创建失败：余额不足（需要${initialFunding}${eco.name}）`
             );
             main(pl);
             return;
         }
-        money.reduce(pl, initialFunding);
+        eco.reduce(pl, initialFunding);
         db.set(pl.xuid, {
             owner: pl.xuid,
             guid: system.randomGuid(),
@@ -274,7 +274,7 @@ function shopHistroy(pl) {
             historyData.buyer
         )}\n物品：${historyData.item.name}§r\n数量：${
             historyData.count
-        }\n单价：${historyData.item.price}${money.name}\n物品NBT：${
+        }\n单价：${historyData.item.price}${eco.name}\n物品NBT：${
             historyData.item.snbt
         }`;
     }
@@ -291,7 +291,7 @@ function itemBuy(pl, owner, item) {
     fm.addLabel(`价格：${item.price}/个`);
     let count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
     if (count > 1) {
-        let num = money.get(pl) / item.price;
+        let num = eco.get(pl) / item.price;
         fm.addSlider(
             "选择购买数量",
             Math.round(1 / item.price),
@@ -316,7 +316,7 @@ function itemBuy(pl, owner, item) {
             return;
         }
         let cost = Math.round(num * shop.items[item.guid].price);
-        if (cost > money.get(pl)) {
+        if (cost > eco.get(pl)) {
             pl.tell(`§c${item.name}§r * ${num}购买失败：余额不足`);
             return;
         }
@@ -337,21 +337,21 @@ function itemBuy(pl, owner, item) {
             shop.items[item.guid].snbt = itemNBT
                 .setByte("Count", count - num)
                 .toSNBT();
-        money.reduce(pl, cost);
+        eco.reduce(pl, cost);
         pl.giveItem(newItem);
         pl.refreshItems();
         let ownerpl = mc.getPlayer(owner);
         if (ownerpl) {
             let get = Math.round(cost * (1 - serviceCharge));
-            money.add(ownerpl, get);
+            eco.add(ownerpl, get);
             shop.history.push(history);
             ownerpl.tell(
-                `${pl.realName}于${history.time}购买了${history.item.name}§r * ${num}（您获得了${get}${money.name}）`
+                `${pl.realName}于${history.time}购买了${history.item.name}§r * ${num}（您获得了${get}${eco.name}）`
             );
         } else shop.pending.push(history);
         db.set(shop.owner, shop);
         pl.tell(
-            `${history.item.name}§r * ${num}购买成功（花费${cost}${money.name}）`
+            `${history.item.name}§r * ${num}购买成功（花费${cost}${eco.name}）`
         );
     });
 }
