@@ -15,9 +15,13 @@ mc.listen("onJoin", (pl) => {
         (pl, arg) => {
             if (!arg) {
                 db.set(pl.xuid, true);
-                mc.broadcast(
-                    `欢迎${pl.realName}加入${["源域", "方屿"][server]}！`
-                );
+                for (let player of mc.getOnlinePlayers()) {
+                    if (player == pl) continue;
+                    player.sendToast(
+                        ["源域", "方屿"][server],
+                        `欢迎${pl.realName}加入了我们！`
+                    );
+                }
             } else pl.kick("§l§4未同意用户协议，请勿使用本服提供的任何服务！");
         }
     );
