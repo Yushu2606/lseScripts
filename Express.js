@@ -1,8 +1,8 @@
 "use strict";
-ll.registerPlugin("Delivery", "快递", [1, 0, 0]);
+ll.registerPlugin("Express", "快递", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins\\Delivery\\config.json");
-const command = config.init("command", "delivery");
+const config = new JsonConfigFile("plugins\\Express\\config.json");
+const command = config.init("command", "express");
 const serviceCharge = config.init("serviceCharge", [0, 3]);
 config.close();
 mc.listen("onServerStarted", () => {
