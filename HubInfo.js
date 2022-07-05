@@ -96,22 +96,9 @@ setInterval(() => {
 }, 1000);
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand("hubinfo", "打开信息栏设置。", PermType.Any);
-    cmd.optional("player", ParamType.Player);
-    cmd.overload("player");
-    cmd.setCallback((_cmd, ori, out, res) => {
-        if ((!ori.player || ori.player.isOP()) && res.player) {
-            if (res.player.length < 1) {
-                return out.error("commands.generic.noTargetMatch");
-            }
-            for (let pl of res.player) {
-                setup(pl);
-            }
-            return;
-        }
-        if (ori.player) {
-            setup(ori.player);
-            return;
-        }
+    cmd.overload();
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (ori.player) return setup(ori.player);
         return out.error("commands.generic.noTargetMatch");
     });
     cmd.setup();

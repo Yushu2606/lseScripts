@@ -19,20 +19,9 @@ mc.listen("onServerStarted", () => {
             menus.get("title", "菜单。"),
             PermType.Any
         );
-        cmd.optional("player", ParamType.Player);
-        cmd.overload("player");
-        cmd.setCallback((_cmd, ori, out, res) => {
-            if ((!ori.player || ori.player.isOP()) && res.player) {
-                if (res.player.length < 1) {
-                    return out.error("commands.generic.noTargetMatch");
-                }
-                for (let pl of res.player) menu(pl, command);
-                return;
-            }
-            if (ori.player) {
-                menu(ori.player, command);
-                return;
-            }
+        cmd.overload();
+        cmd.setCallback((_cmd, ori, out, _res) => {
+            if (ori.player) return menu(ori.player, command);
             return out.error("commands.generic.noTargetMatch");
         });
         cmd.setup();

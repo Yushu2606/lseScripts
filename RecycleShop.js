@@ -10,20 +10,9 @@ const recycle = db.init("recycle", []);
 db.close();
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand(command, "打开回收商店。", PermType.Any);
-    cmd.optional("player", ParamType.Player);
-    cmd.overload("player");
-    cmd.setCallback((_cmd, ori, out, res) => {
-        if ((!ori.player || ori.player.isOP()) && res.player) {
-            if (res.player.length < 1) {
-                return out.error("commands.generic.noTargetMatch");
-            }
-            for (let pl of res.player) main(pl);
-            return;
-        }
-        if (ori.player) {
-            main(ori.player);
-            return;
-        }
+    cmd.overload();
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (ori.player) return main(ori.player);
         return out.error("commands.generic.noTargetMatch");
     });
     cmd.setup();
