@@ -280,12 +280,7 @@ function itemBuy(pl, owner, item) {
     fm.addLabel(`价格：${item.price}/个`);
     let count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
     if (count > 1) {
-        let num = eco.get(pl) / item.price;
-        fm.addSlider(
-            "选择购买数量",
-            Math.round(1 / item.price),
-            num > count ? count : num
-        );
+        fm.addSlider("选择购买数量", 1, count);
     } else fm.addLabel("将购买1个");
     pl.sendForm(fm, (pl, args) => {
         if (!args) {
