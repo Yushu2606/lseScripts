@@ -61,6 +61,6 @@ mc.listen("onTick", () => {
     }
 });
 mc.listen("onMove", (player) => {
-    if (!db.get(player.xuid)) return;
+    if (player.xuid && !db.get(player.xuid)) return;
     player.setSprinting(false);
 });

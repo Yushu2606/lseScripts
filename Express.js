@@ -96,7 +96,7 @@ function main(pl) {
         pl.refreshItems();
         pl1.giveItem(newitem);
         pl.tell(
-            `向${pl.realName}发送物品${item.name}§r * ${args[2]}成功（花费${reduce}级经验）`
+            `向${pl1.realName}发送物品${item.name}§r * ${args[2]}成功（花费${reduce}级经验）`
         );
         pl1.tell(`${pl.realName}向您发送了物品${item.name}§r * ${args[2]}`);
     });
