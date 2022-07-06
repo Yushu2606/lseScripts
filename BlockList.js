@@ -20,12 +20,10 @@ mc.listen("onServerStarted", () => {
         switch (res.action) {
             case "add":
                 let pl = mc.getPlayer(res.player);
-                let ips = [];
+                let clientIds = [];
                 if (pl) {
                     let device = pl.getDevice();
-                    ips.push(
-                        device.ip.substring(0, device.ip.lastIndexOf(":"))
-                    );
+                    clientIds.push(device.clientId);
                     pl.kick(
                         `§r§b很抱歉，您已§l§c被封禁§r${
                             res.message ? `\n§a信息：§r${res.message}` : ""
@@ -37,7 +35,7 @@ mc.listen("onServerStarted", () => {
                     name: res.player,
                     xuid: data.name2xuid(res.player),
                     message: res.message,
-                    ips: ips,
+                    clientIds: clientIds,
                 });
                 File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
                 return out.success("封禁成功");
@@ -63,18 +61,18 @@ mc.listen("onServerStarted", () => {
 });
 mc.listen("onPreJoin", (pl) => {
     let device = pl.getDevice();
-    let ip = device.ip.substring(0, device.ip.lastIndexOf(":"));
     for (let blData of db) {
-        if (pl.xuid != blData.xuid) continue;
+        if (pl.xuid != blData.xuid || blData.clientIds.indexOf(device.clientId) < 0)
+            continue;
         pl.kick(
             `§r§b很抱歉，您已§l§c被封禁§r${
                 blData.message ? `\n§a信息：§r${blData.message}` : ""
             }§r\n§e如有疑惑请在Telegram联系机器人§r§l@SourceLandFeedbackBot`
         );
         log(`${pl.realName}已被踢出`);
-        if (blData.ips.indexOf(ip) < 0) {
+        if (blData.clientIds.indexOf(device.clientId) < 0) {
             let cache = blData;
-            cache.ips.push(ip);
+            cache.clientIds.push(device.clientId);
             db.splice(db.indexOf(blData), 1, cache);
         }
         File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
