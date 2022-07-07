@@ -80,16 +80,14 @@ mc.listen("onPreJoin", (pl) => {
             }§r\n§e如有疑惑请在Telegram联系机器人§r§l@SourceLandFeedbackBot`
         );
         log(`${pl.realName}已被踢出`);
+        let cache = blData;
         if (blData.names.indexOf(pl.realName) < 0) {
-            let cache = blData;
             cache.names.push(pl.realName);
         }
         if (blData.xuids.indexOf(pl.xuid) < 0) {
-            let cache = blData;
             cache.xuids.push(pl.xuid);
         }
         if (blData.clientIds.indexOf(device.clientId) < 0) {
-            let cache = blData;
             cache.clientIds.push(device.clientId);
         }
         db.splice(db.indexOf(blData), 1, cache);
