@@ -79,7 +79,7 @@ mc.listen("onPreJoin", (pl) => {
                 blData.message ? `\n§a信息：§r${blData.message}` : ""
             }§r\n§e如有疑惑请在Telegram联系机器人§r§l@SourceLandFeedbackBot`
         );
-        log(`${pl.realName}已被踢出`);
+        fastLog(`${pl.realName}在尝试进入时被阻止`);
         let cache = blData;
         if (blData.names.indexOf(pl.realName) < 0) {
             cache.names.push(pl.realName);
