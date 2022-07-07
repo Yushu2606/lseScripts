@@ -19,6 +19,13 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_cmd, _ori, out, res) => {
         switch (res.action) {
             case "add":
+                let has = false;
+                for (let blData of db) {
+                    if (blData.names.indexOf(res.player) < 0) continue;
+                    has = true;
+                    break;
+                }
+                if (has) return out.error("已被封禁");
                 let pl = mc.getPlayer(res.player);
                 let clientIds = [];
                 if (pl) {
@@ -32,8 +39,8 @@ mc.listen("onServerStarted", () => {
                     out.success("玩家在线，已踢出");
                 }
                 db.push({
-                    name: res.player,
-                    xuid: data.name2xuid(res.player),
+                    names: [res.player],
+                    xuids: [data.name2xuid(res.player)],
                     message: res.message,
                     clientIds: clientIds,
                 });
@@ -42,8 +49,8 @@ mc.listen("onServerStarted", () => {
             case "remove":
                 db = db.filter((item) => {
                     return (
-                        item.xuid != data.name2xuid(res.player) ||
-                        item.name.toLowerCase() != res.player.toLowerCase()
+                        item.xuids.indexOf(data.name2xuid(res.player)) < 0 ||
+                        item.names.indexOf(res.player.toLowerCase()) < 0
                     );
                 });
                 File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
@@ -62,7 +69,10 @@ mc.listen("onServerStarted", () => {
 mc.listen("onPreJoin", (pl) => {
     let device = pl.getDevice();
     for (let blData of db) {
-        if (pl.xuid != blData.xuid && blData.clientIds.indexOf(device.clientId) < 0)
+        if (
+            blData.xuids.indexOf(pl.xuid) < 0 &&
+            blData.clientIds.indexOf(device.clientId) < 0
+        )
             continue;
         pl.kick(
             `§r§b很抱歉，您已§l§c被封禁§r${
@@ -70,11 +80,19 @@ mc.listen("onPreJoin", (pl) => {
             }§r\n§e如有疑惑请在Telegram联系机器人§r§l@SourceLandFeedbackBot`
         );
         log(`${pl.realName}已被踢出`);
+        if (blData.names.indexOf(pl.realName) < 0) {
+            let cache = blData;
+            cache.names.push(pl.realName);
+        }
+        if (blData.xuids.indexOf(pl.xuid) < 0) {
+            let cache = blData;
+            cache.xuids.push(pl.xuid);
+        }
         if (blData.clientIds.indexOf(device.clientId) < 0) {
             let cache = blData;
             cache.clientIds.push(device.clientId);
-            db.splice(db.indexOf(blData), 1, cache);
         }
+        db.splice(db.indexOf(blData), 1, cache);
         File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
         break;
     }
