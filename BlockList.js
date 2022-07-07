@@ -62,7 +62,7 @@ mc.listen("onServerStarted", () => {
 mc.listen("onPreJoin", (pl) => {
     let device = pl.getDevice();
     for (let blData of db) {
-        if (pl.xuid != blData.xuid || blData.clientIds.indexOf(device.clientId) < 0)
+        if (pl.xuid != blData.xuid && blData.clientIds.indexOf(device.clientId) < 0)
             continue;
         pl.kick(
             `§r§b很抱歉，您已§l§c被封禁§r${

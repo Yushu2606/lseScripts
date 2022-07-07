@@ -33,7 +33,7 @@ mc.listen("onTick", () => {
         };
         pl.rename(
             `${names[pl.xuid] ?? pl.realName}${
-                dt.showHealth ? `\n${pl.health}/${pl.maxHealth}HP` : ""
+                dt.showHealth ? `\nHP ${pl.health}/${pl.maxHealth}` : ""
             }`
         );
     }
@@ -47,7 +47,7 @@ mc.listen("onChat", (pl, msg) => {
     mc.broadcast(
         `${time.h}:${time.m < 10 ? 0 : ""}${time.m} ${
             pl.getDevice().os
-        } <${name}> ${msg}`
+        } ${name}： ${msg}`
     );
     msgs[name].push([system.getTimeObj(), msg]);
     rtnMsgs[name].push(msg);

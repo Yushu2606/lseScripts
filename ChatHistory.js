@@ -16,8 +16,8 @@ mc.listen("onChat", (pl, msg) => {
 mc.listen("onJoin", (pl) => {
     for (let msg of msgs)
         pl.tell(
-            `${msg.time.h}:${msg.time.m < 10 ? 0 : ""}${msg.time.m} | ${
+            `${msg.time.h}:${msg.time.m < 10 ? 0 : ""}${msg.time.m} ${
                 msg.os
-            } <${data.xuid2name(msg.xuid)}> ${msg.msg}`
+            } ${data.xuid2name(msg.xuid)}： ${msg.msg}`
         );
 });

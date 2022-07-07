@@ -25,26 +25,26 @@ let eco = (() => {
             let scoreboard = config.init("scoreboard", "money");
             return {
                 add: (pl, money) => {
-                    pl.addScore(scoreboard, money);
+                    return pl.addScore(scoreboard, money);
                 },
                 reduce: (pl, money) => {
-                    pl.reduceScore(scoreboard, money);
+                    return pl.reduceScore(scoreboard, money);
                 },
                 get: (pl) => {
-                    pl.getScore(scoreboard);
+                    return pl.getScore(scoreboard);
                 },
                 name: mc.getScoreObjective(scoreboard).displayName,
             };
         case "xplevel":
             return {
                 add: (pl, money) => {
-                    pl.addLevel(money);
+                    return pl.addLevel(money);
                 },
                 reduce: (pl, money) => {
-                    pl.addLevel(-money);
+                    return pl.addLevel(-money);
                 },
                 get: (pl) => {
-                    pl.getLevel();
+                    return pl.getLevel();
                 },
                 name: "级经验",
             };
