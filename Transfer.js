@@ -3,7 +3,7 @@ ll.registerPlugin("Transfer", "转账", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins\\Transfer\\config.json");
 const command = config.init("command", "transfer");
-const rate = config.init("rate", 0.95);
+const rate = config.init("rate", 0.98);
 config.close();
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand(command, "打开转账菜单。", PermType.Any);

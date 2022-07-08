@@ -68,7 +68,7 @@ function main(pl) {
         }
         let level = pl.getLevel();
         const condition = Math.floor(
-            serviceCharge[1] + serviceCharge[1] * level * 0.1
+            serviceCharge[1] + serviceCharge[1] * level * 0.02
         );
         if (level < condition) {
             pl.tell(`§c物品送达失败：余额不足（需要${condition}级经验）`);

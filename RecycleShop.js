@@ -3,7 +3,7 @@ ll.registerPlugin("RecycleShop", "回收商店", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins\\RecycleShop\\config.json");
 const command = config.init("command", "recycleshop");
-const serviceCharge = config.init("serviceCharge", 0.05);
+const serviceCharge = config.init("serviceCharge", 0.02);
 config.close();
 const db = new JsonConfigFile("plugins\\RecycleShop\\data.json");
 const recycle = db.init("recycle", []);

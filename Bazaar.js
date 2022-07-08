@@ -4,7 +4,7 @@ ll.registerPlugin("Bazaar", "物品集市", [1, 0, 0]);
 const config = new JsonConfigFile("plugins\\Bazaar\\config.json");
 const command = config.init("command", "bazaar");
 const initialFunding = config.init("initialFunding", 7);
-const serviceCharge = config.init("serviceCharge", 0.05);
+const serviceCharge = config.init("serviceCharge", 0.02);
 const currencyType = config.init("currencyType", "llmoney");
 let eco = (() => {
     switch (currencyType) {
