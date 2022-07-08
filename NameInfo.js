@@ -18,22 +18,27 @@ function setup(pl) {
     let fm = mc.newCustomForm();
     fm.setTitle("名称信息 - 设置");
     fm.addSwitch("显示血量");
+    fm.addSwitch("显示延迟");
+    fm.addSwitch("显示丢包率");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return;
         db.set(pl.xuid, {
             showHealth: args[0],
+            showPing: args[1],
+            showPacketLoss: args[2],
         });
         pl.tell("名称信息修改成功");
     });
 }
 mc.listen("onTick", () => {
     for (let pl of mc.getOnlinePlayers()) {
-        let dt = db.get(pl.xuid) ?? {
-            showHealth: false,
-        };
+        let dt = db.get(pl.xuid) ?? {};
+        const device = pl.getDevice();
         pl.rename(
             `${names[pl.xuid] ?? pl.realName}${
-                dt.showHealth ? `\nHP ${pl.health}/${pl.maxHealth}` : ""
+                dt.showHealth ? `\n血量 ${pl.health}/${pl.maxHealth}` : ""
+            }${dt.showPing ? `\n延迟 ${device.avgPing}毫秒` : ""}${
+                dt.showPing ? `\n丢包率 ${device.avgPacketLoss}％` : ""
             }`
         );
     }
