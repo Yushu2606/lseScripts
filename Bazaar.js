@@ -164,6 +164,7 @@ function shopManagement(pl) {
     fm.addButton("信息设置");
     fm.addButton("物品管理");
     fm.addButton("查看历史纪录");
+    fm.addButton(`${shop.name}§r\n-- 预览模式-- `, shop.icon);
     pl.sendForm(fm, (pl, arg) => {
         switch (arg) {
             case 0:
@@ -174,6 +175,9 @@ function shopManagement(pl) {
                 break;
             case 2:
                 shopHistroy(pl);
+                break;
+            case 3:
+                itemList(pl, pl.xuid);
                 break;
             default:
                 main(pl);
@@ -258,7 +262,7 @@ function shopHistroy(pl) {
     let history = shop.history.reverse();
     let content = "";
     for (let historyData of history) {
-        if (content) content += "\n";
+        if (content) content += "\n\n";
         content += `购买时间：${historyData.time}\n卖家：${data.xuid2name(
             historyData.buyer
         )}\n物品：${historyData.item.name}§r\n数量：${
@@ -285,6 +289,10 @@ function itemBuy(pl, owner, item) {
     pl.sendForm(fm, (pl, args) => {
         if (!args) {
             itemList(pl, owner);
+            return;
+        }
+        if (pl.xuid == owner) {
+            shopManagement(pl);
             return;
         }
         let shop = db.get(owner);
