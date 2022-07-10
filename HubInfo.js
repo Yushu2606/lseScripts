@@ -95,7 +95,7 @@ setInterval(() => {
     }
 }, 1000);
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand("hubinfo", "打开信息栏设置。", PermType.Any);
+    const cmd = mc.newCommand("hubinfo", "打开信息栏设置。");
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (ori.player) return setup(ori.player);

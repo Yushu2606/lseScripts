@@ -16,8 +16,7 @@ mc.listen("onServerStarted", () => {
         );
         const cmd = mc.newCommand(
             commands[command],
-            menus.get("title", "菜单。"),
-            PermType.Any
+            menus.get("title", "菜单。")
         );
         cmd.overload();
         cmd.setCallback((_cmd, ori, out, _res) => {

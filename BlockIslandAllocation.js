@@ -1,5 +1,5 @@
 "use strict";
-ll.registerPlugin("BlockIsland", "岛屿分配系统", [1, 0, 0]);
+ll.registerPlugin("BlockIslandAllocation", "岛屿分配系统", [1, 0, 0]);
 
 const db = new KVDatabase("plugins\\BlockIsland\\data");
 if (db.listKey().indexOf("spawn") < 0) {

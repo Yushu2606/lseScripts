@@ -9,7 +9,7 @@ const db = new JsonConfigFile("plugins\\RecycleShop\\data.json");
 const recycle = db.init("recycle", []);
 db.close();
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开回收商店。", PermType.Any);
+    const cmd = mc.newCommand(command, "打开回收商店。");
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (ori.player) return main(ori.player);

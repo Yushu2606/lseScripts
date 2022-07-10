@@ -6,7 +6,7 @@ const command = config.init("command", "redpacket");
 config.close();
 let db = new KVDatabase("plugins\\RedPacket\\data");
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开红包菜单。", PermType.Any);
+    const cmd = mc.newCommand(command, "打开红包菜单。");
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (ori.player) return main(ori.player);
