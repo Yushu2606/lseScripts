@@ -33,7 +33,9 @@ let eco = (() => {
                 get: (pl) => {
                     return pl.getScore(scoreboard);
                 },
-                name: mc.getScoreObjective(scoreboard).displayName,
+                name: () => {
+                    return mc.getScoreObjective("money").displayName;
+                },
             };
         case "xplevel":
             return {
