@@ -6,48 +6,29 @@ const command = config.init("command", "bazaar");
 const initialFunding = config.init("initialFunding", 7);
 const serviceCharge = config.init("serviceCharge", 0.02);
 const currencyType = config.init("currencyType", "llmoney");
-let eco = (() => {
+const currencyName = config.init("currencyName", "货币");
+const eco = (() => {
     switch (currencyType) {
         case "llmoney":
             return {
-                add: (pl, m) => {
-                    return money.add(pl.xuid, m);
-                },
-                reduce: (pl, m) => {
-                    return money.reduce(pl.xuid, m);
-                },
-                get: (pl) => {
-                    return money.get(pl.xuid);
-                },
-                name: config.init("currencyName", "货币"),
+                add: (pl, m) => money.add(pl.xuid, m),
+                reduce: (pl, m) => money.reduce(pl.xuid, m),
+                get: (pl) => money.get(pl.xuid),
+                name: currencyName,
             };
         case "scoreboard":
-            let scoreboard = config.init("scoreboard", "money");
+            const scoreboard = config.init("scoreboard", "money");
             return {
-                add: (pl, money) => {
-                    return pl.addScore(scoreboard, money);
-                },
-                reduce: (pl, money) => {
-                    return pl.reduceScore(scoreboard, money);
-                },
-                get: (pl) => {
-                    return pl.getScore(scoreboard);
-                },
-                name: () => {
-                    return mc.getScoreObjective("money").displayName;
-                },
+                add: (pl, money) => pl.addScore(scoreboard, money),
+                reduce: (pl, money) => pl.reduceScore(scoreboard, money),
+                get: (pl) => pl.getScore(scoreboard),
+                name: currencyName,
             };
         case "xplevel":
             return {
-                add: (pl, money) => {
-                    return pl.addLevel(money);
-                },
-                reduce: (pl, money) => {
-                    return pl.addLevel(-money);
-                },
-                get: (pl) => {
-                    return pl.getLevel();
-                },
+                add: (pl, money) => pl.addLevel(money),
+                reduce: (pl, money) => pl.addLevel(-money),
+                get: (pl) => pl.getLevel(),
                 name: "级经验",
             };
         default:
@@ -66,11 +47,11 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 mc.listen("onJoin", (pl) => {
-    let shop = db.get(pl.xuid);
+    const shop = db.get(pl.xuid);
     if (!shop || shop.pending.length < 1) return;
     while (shop.pending.length > 0) {
-        let history = shop.pending.shift();
-        let get = Math.round(
+        const history = shop.pending.shift();
+        const get = Math.round(
             history.count * history.item.price * (1 - history.serviceCharge)
         );
         eco.add(pl, get);
@@ -84,13 +65,13 @@ mc.listen("onJoin", (pl) => {
     db.set(pl.xuid, shop);
 });
 function main(pl) {
-    let fm = mc.newSimpleForm();
+    const fm = mc.newSimpleForm();
     fm.setTitle("物品集市");
-    let list = [];
+    const list = [];
     fm.addButton(db.get(pl.xuid) ? "管理店铺" : "创建店铺");
-    for (let owner of db.listKey()) {
+    for (const owner of db.listKey()) {
         if (owner == pl.xuid) continue;
-        let shop = db.get(owner);
+        const shop = db.get(owner);
         if (Object.keys(shop.items).length < 1) continue;
         else list.push(owner);
         fm.addButton(
@@ -100,41 +81,32 @@ function main(pl) {
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == 0) {
-            if (db.get(pl.xuid)) {
-                shopManagement(pl);
-                return;
-            }
+            if (db.get(pl.xuid)) return shopManagement(pl);
             if (eco.get(pl) < initialFunding) {
                 pl.tell(
                     `§c店铺创建失败：余额不足（需要${initialFunding}${eco.name}）`
                 );
-                main(pl);
-                return;
+                return main(pl);
             }
-            createShop(pl);
-            return;
+            return createShop(pl);
         }
         if (arg != null) itemList(pl, list[arg - 1]);
     });
 }
 function createShop(pl) {
-    let fm = mc.newCustomForm();
+    const fm = mc.newCustomForm();
     fm.setTitle("创建店铺");
     fm.addLabel(`将花费${initialFunding}${eco.name}创建店铺`);
     fm.addInput("店铺名称", "字符串（可空）");
     fm.addInput("店铺简介", "字符串（可空）");
     fm.addInput("店铺标志", "字符串（可空）");
     pl.sendForm(fm, (pl, args) => {
-        if (!args) {
-            main(pl);
-            return;
-        }
+        if (!args) return main(pl);
         if (eco.get(pl) < initialFunding) {
             pl.tell(
                 `§c店铺${args[1]}创建失败：余额不足（需要${initialFunding}${eco.name}）`
             );
-            main(pl);
-            return;
+            return main(pl);
         }
         eco.reduce(pl, initialFunding);
         db.set(pl.xuid, {
@@ -153,8 +125,8 @@ function createShop(pl) {
     });
 }
 function shopManagement(pl) {
-    let fm = mc.newSimpleForm();
-    let shop = db.get(pl.xuid);
+    const fm = mc.newSimpleForm();
+    const shop = db.get(pl.xuid);
     fm.setTitle(shop.name);
     fm.setContent(
         `${shop.intro}§r\n目前在售物品数：${
@@ -170,28 +142,25 @@ function shopManagement(pl) {
     pl.sendForm(fm, (pl, arg) => {
         switch (arg) {
             case 0:
-                shopInfo(pl);
-                break;
+                return shopInfo(pl);
             case 1:
-                shopItem(pl);
-                break;
+                return shopItem(pl);
             case 2:
-                shopHistroy(pl);
-                break;
+                return shopHistroy(pl);
             default:
                 main(pl);
         }
     });
 }
 function itemList(pl, owner) {
-    let fm = mc.newSimpleForm();
-    let shop = db.get(owner);
-    let itemcount = Object.keys(shop.items).length;
+    const fm = mc.newSimpleForm();
+    const shop = db.get(owner);
+    const itemcount = Object.keys(shop.items).length;
     fm.setTitle(shop.name);
     fm.setContent(`${shop.intro}§r\n目前在售物品数：${itemcount}个`);
     if (itemcount > 0)
-        for (let item of Object.values(shop.items)) {
-            let itemNBT = NBT.parseSNBT(item.snbt);
+        for (const item of Object.values(shop.items)) {
+            const itemNBT = NBT.parseSNBT(item.snbt);
             fm.addButton(
                 `${item.name}§r（${itemNBT.getTag("Name")}） * ${itemNBT.getTag(
                     "Count"
@@ -199,26 +168,19 @@ function itemList(pl, owner) {
             );
         }
     pl.sendForm(fm, (pl, arg) => {
-        if (arg == null) {
-            main(pl);
-            return;
-        }
+        if (arg == null) return main(pl);
         itemBuy(pl, owner, Object.values(db.get(owner).items)[arg]);
     });
 }
 function shopInfo(pl) {
-    let fm = mc.newCustomForm();
+    const fm = mc.newCustomForm();
     fm.setTitle("信息设置");
-    let shop = db.get(pl.xuid);
+    const shop = db.get(pl.xuid);
     fm.addInput("店铺名称", "字符串（可空）", shop.name);
     fm.addInput("店铺简介", "字符串（可空）", shop.intro);
     fm.addInput("店铺标志", "字符串（可空）", shop.icon);
     pl.sendForm(fm, (pl, args) => {
-        if (!args) {
-            shopManagement(pl);
-            return;
-        }
-        let shop = db.get(pl.xuid);
+        if (!args) return shopManagement(pl);
         shop.name = args[0];
         shop.intro = args[1];
         shop.icon = args[2];
@@ -228,12 +190,12 @@ function shopInfo(pl) {
     });
 }
 function shopItem(pl) {
-    let fm = mc.newSimpleForm();
+    const fm = mc.newSimpleForm();
     fm.addButton("上架物品");
-    let shop = db.get(pl.xuid);
+    const shop = db.get(pl.xuid);
     fm.setTitle(shop.name);
-    for (let item of Object.values(shop.items)) {
-        let itemNBT = NBT.parseSNBT(item.snbt);
+    for (const item of Object.values(shop.items)) {
+        const itemNBT = NBT.parseSNBT(item.snbt);
         fm.addButton(
             `${item.name}§r（${itemNBT.getTag("Name")}） * ${itemNBT.getTag(
                 "Count"
@@ -241,26 +203,20 @@ function shopItem(pl) {
         );
     }
     pl.sendForm(fm, (pl, arg) => {
-        if (arg == null) {
-            shopManagement(pl);
-            return;
-        }
+        if (arg == null) return shopManagement(pl);
         switch (arg) {
             case 0:
-                itemUpload(pl);
-                break;
+                return itemUpload(pl);
             default:
                 itemManagement(pl, arg);
         }
     });
 }
 function shopHistroy(pl) {
-    let fm = mc.newSimpleForm();
+    const fm = mc.newSimpleForm();
     fm.setTitle("历史记录");
-    let shop = db.get(pl.xuid);
-    let history = shop.history.reverse();
     let content = "";
-    for (let historyData of history) {
+    for (const historyData of db.get(pl.xuid).history.reverse()) {
         if (content) content += "\n\n";
         content += `购买时间：${historyData.time}\n卖家：${data.xuid2name(
             historyData.buyer
@@ -271,48 +227,35 @@ function shopHistroy(pl) {
         }`;
     }
     fm.setContent(content);
-    pl.sendForm(fm, () => {
-        shopManagement(pl);
-    });
+    pl.sendForm(fm, shopManagement);
 }
 function itemBuy(pl, owner, item) {
-    let fm = mc.newCustomForm();
+    const fm = mc.newCustomForm();
     fm.setTitle("购买确认");
     fm.addLabel(`物品名：${item.name}`);
     fm.addLabel(`NBT：${item.snbt}`);
     fm.addLabel(`价格：${item.price}/个`);
-    let count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
+    const count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
     if (count > 1) {
         fm.addSlider("选择购买数量", 1, count);
     } else fm.addLabel("将购买1个");
     pl.sendForm(fm, (pl, args) => {
-        if (!args) {
-            itemList(pl, owner);
-            return;
-        }
-        let shop = db.get(owner);
-        let num = args[3] ?? 1;
-        if (!shop.items[item.guid]) {
-            pl.tell(`§c${item.name}§r * ${num}购买失败：已被买走`);
-            return;
-        }
-        let itemNBT = NBT.parseSNBT(shop.items[item.guid].snbt);
-        let count = Number(itemNBT.getTag("Count"));
-        if (count < num) {
-            pl.tell(`§c${item.name}§r * ${num}购买失败：数量过多`);
-            return;
-        }
-        let cost = Math.round(num * shop.items[item.guid].price);
-        if (cost > eco.get(pl)) {
-            pl.tell(`§c${item.name}§r * ${num}购买失败：余额不足`);
-            return;
-        }
-        let newItem = mc.newItem(itemNBT.setByte("Count", num));
-        if (!pl.getInventory().hasRoomFor(newItem)) {
-            pl.tell(`§c${item.name}§r * ${num}购买失败：背包已满`);
-            return;
-        }
-        let history = {
+        if (!args) return itemList(pl, owner);
+        const shop = db.get(owner);
+        const num = args[3] ?? 1;
+        if (!shop.items[item.guid])
+            return pl.tell(`§c${item.name}§r * ${num}购买失败：已被买走`);
+        const itemNBT = NBT.parseSNBT(shop.items[item.guid].snbt);
+        const count = Number(itemNBT.getTag("Count"));
+        if (count < num)
+            return pl.tell(`§c${item.name}§r * ${num}购买失败：数量过多`);
+        const cost = Math.round(num * shop.items[item.guid].price);
+        if (cost > eco.get(pl))
+            return pl.tell(`§c${item.name}§r * ${num}购买失败：余额不足`);
+        const newItem = mc.newItem(itemNBT.setByte("Count", num));
+        if (!pl.getInventory().hasRoomFor(newItem))
+            return pl.tell(`§c${item.name}§r * ${num}购买失败：背包已满`);
+        const history = {
             time: system.getTimeStr(),
             buyer: pl.xuid,
             serviceCharge: serviceCharge,
@@ -327,9 +270,9 @@ function itemBuy(pl, owner, item) {
         eco.reduce(pl, cost);
         pl.giveItem(newItem);
         pl.refreshItems();
-        let ownerpl = mc.getPlayer(owner);
+        const ownerpl = mc.getPlayer(owner);
         if (ownerpl) {
-            let get = Math.round(cost * (1 - serviceCharge));
+            const get = Math.round(cost * (1 - serviceCharge));
             eco.add(ownerpl, get);
             shop.history.push(history);
             ownerpl.tell(
@@ -343,10 +286,10 @@ function itemBuy(pl, owner, item) {
     });
 }
 function itemUpload(pl) {
-    let itemsmsg = [];
-    let items = [];
-    let inventoryItems = pl.getInventory().getAllItems();
-    for (let item of inventoryItems) {
+    const itemsmsg = [];
+    const items = [];
+    const inventoryItems = pl.getInventory().getAllItems();
+    for (const item of inventoryItems) {
         if (item.isNull()) continue;
         itemsmsg.push(
             `[${inventoryItems.indexOf(item)}] ${item.name}§r（${item.type}:${
@@ -355,7 +298,7 @@ function itemUpload(pl) {
         );
         items.push(item);
     }
-    let fm = mc.newCustomForm();
+    const fm = mc.newCustomForm();
     if (itemsmsg.length < 1) {
         pl.tell("§c物品上架失败：背包为空");
         shopItem(pl);
@@ -367,33 +310,27 @@ function itemUpload(pl) {
     fm.addInput("物品单价", "数字");
     fm.addSlider("上架数量", 1, 64);
     pl.sendForm(fm, (pl, args) => {
-        if (!args) {
-            shopItem(pl);
-            return;
-        }
+        if (!args) return shopItem(pl);
         if (isNaN(args[2])) {
             pl.tell(
                 `§c物品${args[1]}§r * ${args[3]}上架失败：价格输入错误（非数字）`
             );
-            shopItem(pl);
-            return;
+            return shopItem(pl);
         }
         if (args[2] <= 0) {
             pl.tell(
                 `§c物品${args[1]}§r * ${args[3]}上架失败：价格输入错误（非正数）`
             );
-            shopItem(pl);
-            return;
+            return shopItem(pl);
         }
-        let item = items[args[0]];
+        const item = items[args[0]];
         if (item.count < args[3]) {
             pl.tell(`§c物品${args[1]}§r * ${args[3]}上架失败：数量不足`);
-            shopItem(pl);
-            return;
+            return shopItem(pl);
         }
-        let shop = db.get(pl.xuid);
-        let itemNBT = item.getNbt();
-        let guid = system.randomGuid();
+        const shop = db.get(pl.xuid);
+        const itemNBT = item.getNbt();
+        const guid = system.randomGuid();
         shop.items[guid] = {
             name: args[1] || item.name,
             guid: guid,
@@ -410,20 +347,18 @@ function itemUpload(pl) {
     });
 }
 function itemManagement(pl, arg) {
-    let fm = mc.newCustomForm();
-    let items = db.get(pl.xuid).items;
-    let item = Object.values(items)[arg - 1];
+    const fm = mc.newCustomForm();
+    const item = Object.values(db.get(pl.xuid).items)[arg - 1];
     fm.setTitle(`编辑物品 - ${item.name}`);
     fm.addInput("物品名称", "字符串（可空）", item.name);
     fm.addInput("物品价格", "数字（可空）", item.price);
-    let count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
+    const count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
     fm.addSlider("上架数量", 0, count, 1, count);
     pl.sendForm(fm, (pl, args) => {
         if (!args) {
             shopItem(pl);
             return;
         }
-        let shop = db.get(pl.xuid);
         if (isNaN(args[1] ?? item.price)) {
             pl.tell(
                 `§c物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非数字）`
@@ -443,8 +378,9 @@ function itemManagement(pl, arg) {
             shopItem(pl);
             return;
         }
-        let itemNBT = NBT.parseSNBT(shop.items[item.guid].snbt);
-        let count = Number(itemNBT.getTag("Count"));
+        const shop = db.get(pl.xuid);
+        const itemNBT = NBT.parseSNBT(shop.items[item.guid].snbt);
+        const count = Number(itemNBT.getTag("Count"));
         if (count < args[2]) {
             pl.tell(`§c物品${args[0]}§r * ${args[2]}修改失败：下架过多`);
             shopItem(pl);
@@ -452,13 +388,12 @@ function itemManagement(pl, arg) {
         }
         shop.items[item.guid].name = args[0] || item.name;
         shop.items[item.guid].price = args[1] ?? item.price;
-        let wbd = args[2] < 1;
+        const wbd = args[2] < 1;
         if (args[2] != count) {
-            let it = mc.newItem(itemNBT.setByte("Count", count - args[2]));
+            const it = mc.newItem(itemNBT.setByte("Count", count - args[2]));
             if (!pl.getInventory().hasRoomFor(it)) {
                 pl.tell(`§c物品${args[0]}§r * ${args[2]}修改失败：背包已满`);
-                shopItem(pl);
-                return;
+                return shopItem(pl);
             }
             if (wbd) delete shop.items[item.guid];
             else

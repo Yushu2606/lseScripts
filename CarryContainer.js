@@ -54,7 +54,7 @@ mc.listen("onUseItemOn", (player, item, block, side) => {
     return false;
 });
 mc.listen("onTick", () => {
-    for (let xuid of db.listKey()) {
+    for (const xuid of db.listKey()) {
         const player = mc.getPlayer(xuid);
         if (!player) continue;
         player.tell(`正在搬运${db.get(xuid).name}`, 5);

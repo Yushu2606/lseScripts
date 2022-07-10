@@ -9,15 +9,14 @@ mc.listen("onUseItem", (pl, it) => {
     if (it.type in itemType) menu(pl, itemType[it.type]);
 });
 mc.listen("onServerStarted", () => {
-    for (let command in commands) {
+    for (const command in commands) {
         const menus = new JsonConfigFile(
             `plugins\\Menu\\menus\\${command}.json`,
             data.toJson({}, 4)
         );
-        const cmd = mc.newCommand(
-            commands[command],
-            menus.get("title", "菜单。")
-        );
+        const title = menus.get("title", "菜单。");
+        menus.close();
+        const cmd = mc.newCommand(commands[command], title);
         cmd.overload();
         cmd.setCallback((_cmd, ori, out, _res) => {
             if (ori.player) return menu(ori.player, command);
@@ -35,29 +34,28 @@ function menu(pl, mu) {
     const title = menus.get("title", "");
     const contents = menus.get("contents", []);
     const buttons = menus.get("buttons", []);
+    const back = menus.get("back", "");
     menus.close();
-    let fm = mc.newSimpleForm();
+    const fm = mc.newSimpleForm();
     fm.setTitle(title);
     if (contents.length > 0)
         fm.setContent(contents[Math.floor(Math.random() * contents.length)]);
-    for (let bt of buttons) {
+    for (const bt of buttons) {
         if (bt.opOnly && !pl.isOP()) continue;
         fm.addButton(bt.text, bt.image ? bt.image : "");
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) {
-            const back = menus.get("back", "");
             if (!back) return;
-            menu(pl, back);
-            return;
+            return menu(pl, back);
         }
         if (buttons[arg].run)
-            for (let cmd of buttons[arg].run) {
+            for (const cmd of buttons[arg].run) {
                 if (cmd.opOnly && !pl.isOP()) continue;
                 mc.runcmdEx(cmd.command.replace(/@s/, `"${pl.realName}"`));
             }
         if (buttons[arg].runas)
-            for (let cmd of buttons[arg].runas) {
+            for (const cmd of buttons[arg].runas) {
                 if (cmd.opOnly && !pl.isOP()) continue;
                 pl.runcmd(cmd.command);
             }

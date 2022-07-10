@@ -2,9 +2,7 @@
 ll.registerPlugin("BlockList", "封禁名单支持", [1, 0, 0]);
 
 let jsonstr = File.readFrom("blocklist.json");
-if (!jsonstr) {
-    File.writeTo("blocklist.json", (jsonstr = "[]"));
-}
+if (!jsonstr) File.writeTo("blocklist.json", (jsonstr = "[]"));
 let db = data.parseJson(jsonstr);
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand("blocklist", "封禁用户。", PermType.GameMasters);
@@ -20,17 +18,16 @@ mc.listen("onServerStarted", () => {
         switch (res.action) {
             case "add":
                 let has = false;
-                for (let blData of db) {
+                for (const blData of db) {
                     if (blData.names.indexOf(res.player) < 0) continue;
                     has = true;
                     break;
                 }
                 if (has) return out.error("已被封禁");
-                let pl = mc.getPlayer(res.player);
-                let clientIds = [];
+                const pl = mc.getPlayer(res.player);
+                const clientIds = [];
                 if (pl) {
-                    let device = pl.getDevice();
-                    clientIds.push(device.clientId);
+                    clientIds.push(pl.getDevice().clientId);
                     pl.kick(
                         `§r§b很抱歉，您已§l§c被封禁§r${
                             res.message ? `\n§a信息：§r${res.message}` : ""
@@ -67,8 +64,8 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 mc.listen("onPreJoin", (pl) => {
-    let device = pl.getDevice();
-    for (let blData of db) {
+    const device = pl.getDevice();
+    for (const blData of db) {
         if (
             blData.xuids.indexOf(pl.xuid) < 0 &&
             blData.clientIds.indexOf(device.clientId) < 0
@@ -80,16 +77,12 @@ mc.listen("onPreJoin", (pl) => {
             }§r\n§e如有疑惑请在Telegram联系机器人§r§l@SourceLandFeedbackBot`
         );
         fastLog(`${pl.realName}在尝试进入时被阻止`);
-        let cache = blData;
-        if (blData.names.indexOf(pl.realName) < 0) {
+        const cache = blData;
+        if (blData.names.indexOf(pl.realName) < 0)
             cache.names.push(pl.realName);
-        }
-        if (blData.xuids.indexOf(pl.xuid) < 0) {
-            cache.xuids.push(pl.xuid);
-        }
-        if (blData.clientIds.indexOf(device.clientId) < 0) {
+        if (blData.xuids.indexOf(pl.xuid) < 0) cache.xuids.push(pl.xuid);
+        if (blData.clientIds.indexOf(device.clientId) < 0)
             cache.clientIds.push(device.clientId);
-        }
         db.splice(db.indexOf(blData), 1, cache);
         File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
         break;

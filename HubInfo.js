@@ -8,24 +8,23 @@ const db = new KVDatabase("plugins\\HubInfo\\data");
 let ticks = [];
 let realTPMS = 0;
 let newTick = Date.now();
-let next = {};
+const next = {};
 mc.listen("onTick", () => {
-    let oldTick = newTick;
+    const oldTick = newTick;
     newTick = Date.now();
     ticks.push(newTick - oldTick);
 });
 setInterval(() => {
     let tickPlus = 0;
-    for (let tick of ticks) tickPlus += tick;
+    for (const tick of ticks) tickPlus += tick;
     realTPMS = tickPlus / ticks.length;
     ticks = [];
-    let tps = 1000 / realTPMS;
-    let pls = mc.getOnlinePlayers();
-    for (let pl of pls) {
+    const tps = 1000 / realTPMS;
+    for (const pl of mc.getOnlinePlayers()) {
         pl.removeSidebar();
         pl.removeBossBar(0);
-        let pldv = pl.getDevice();
-        let list = {};
+        const pldv = pl.getDevice();
+        const list = {};
         list[
             `负载：§${
                 tps > 18
@@ -58,8 +57,7 @@ setInterval(() => {
                 pldv.avgPacketLoss
             }％§r丢包`
         ] = 0;
-        let state = db.get(pl.xuid);
-        switch (state) {
+        switch (db.get(pl.xuid)) {
             case 0:
                 continue;
             case 1:
@@ -76,11 +74,9 @@ setInterval(() => {
                         "1234567890abcdefglmno"[Math.floor(Math.random() * 21)]
                     }${serverName}`
                 ] = 0;
-                let step = 25;
-                if (!(pl in next)) {
-                    next[pl] = -step;
-                }
-                let index = Math.floor(
+                const step = 25;
+                if (!(pl in next)) next[pl] = -step;
+                const index = Math.floor(
                     (next[pl] = next[pl] < 300 - step ? next[pl] + step : 0) /
                         100
                 );
@@ -90,7 +86,6 @@ setInterval(() => {
                     next[pl] % 100,
                     index
                 );
-                break;
         }
     }
 }, 1000);
@@ -104,12 +99,12 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 function setup(pl) {
-    let fm = mc.newCustomForm();
+    const fm = mc.newCustomForm();
     fm.setTitle("信息栏 - 设置");
     fm.addStepSlider("位置", ["关闭", "计分板", "血条"], db.get(pl.xuid) ?? 0);
     pl.sendForm(fm, (pl, args) => {
         if (!args) return;
-        let old = db.get(pl.xuid);
+        const old = db.get(pl.xuid);
         if (args[0] == old) return;
         db.set(pl.xuid, args[0]);
         pl.tell(

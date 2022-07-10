@@ -18,51 +18,44 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 function main(pl) {
-    let fm = mc.newSimpleForm();
+    const fm = mc.newSimpleForm();
     fm.setTitle("回收商店");
-    for (let item of recycle)
+    for (const item of recycle)
         fm.addButton(`${item.name}\n${item.price}经验值/个`, item.icon);
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return;
         const it = recycle[arg];
         let count = 0;
-        for (let item of pl.getInventory().getAllItems())
+        for (const item of pl.getInventory().getAllItems())
             if (item.type == it.id) count += item.count;
         if (count < 1) {
             pl.tell(`§c物品${it.name}回收失败：数量不足`);
-            main(pl);
-            return;
+            return main(pl);
         }
         confirm(pl, it, count);
     });
 }
 function confirm(pl, itemData, count) {
-    let fm = mc.newCustomForm();
+    const fm = mc.newCustomForm();
     fm.setTitle("回收确认");
     fm.addLabel(`物品名：${itemData.name}`);
     fm.addLabel(`回收价：${itemData.price}/个`);
     fm.addLabel(`当前税率：${serviceCharge * 100}％`);
     fm.addSlider("选择回收数量", 1, count);
     pl.sendForm(fm, (pl, args) => {
-        if (!args) {
-            main(pl);
-            return;
-        }
-        const inv = pl.getInventory();
+        if (!args) return main(pl);
+        const its = pl.getInventory().getAllItems();
         let count = 0;
-        for (let item of inv.getAllItems()) {
+        for (const item of its) {
             if (item.type != itemData.id) continue;
             count += item.count;
         }
-        if (count < args[3]) {
-            pl.tell(
+        if (count < args[3])
+            return pl.tell(
                 `§c物品${itemData.name}回收失败：数量不足（只有${count}个）`
             );
-            return;
-        }
-        const its = inv.getAllItems();
         let count2 = args[3];
-        for (let item of its) {
+        for (const item of its) {
             if (count2 < 1 || item.type != itemData.id) continue;
             count2 -= item.count;
             if (count2 < 0)

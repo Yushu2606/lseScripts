@@ -15,7 +15,7 @@ mc.listen("onJoin", (pl) => {
         (pl, arg) => {
             if (!arg) {
                 db.set(pl.xuid, true);
-                for (let player of mc.getOnlinePlayers()) {
+                for (const player of mc.getOnlinePlayers()) {
                     if (player == pl) continue;
                     player.sendToast(
                         ["源域", "方屿"][server],
@@ -26,10 +26,4 @@ mc.listen("onJoin", (pl) => {
         }
     );
 });
-ll.export(
-    () => {
-        return db.listKey().length;
-    },
-    "playersCount",
-    "get"
-);
+ll.export(() => db.listKey().length, "playersCount", "get");

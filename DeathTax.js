@@ -5,10 +5,13 @@ const conf = new JsonConfigFile("plugins\\DeathTax\\config.json");
 const tax = conf.init("tax", [0, 3]);
 conf.close();
 mc.listen("onPlayerDie", (pl) => {
-    let level = pl.getLevel();
+    const level = pl.getLevel();
     if (level < 1) return;
     const condition = Math.floor(tax[1] + tax[1] * level * 0.02);
-    let reduce = Math.round(Math.random() * (tax[0] - condition) + condition);
-    pl.addLevel(-(reduce = level < reduce ? level : reduce));
+    const reduce = Math.round(Math.random() * (tax[0] - condition) + condition);
+    if (level < reduce) {
+        reduce = level;
+        pl.resetLevel();
+    } else pl.addLevel(-reduce);
     pl.tell(`扣除${reduce}级经验`);
 });

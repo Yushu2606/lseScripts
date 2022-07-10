@@ -10,15 +10,15 @@ const motd = config.init("motd", [
 config.close();
 let index = 0;
 setInterval(() => {
-    let motdt = motd[index];
     if (
-        new RegExp(/%playerscount%/).test(motdt) &&
+        new RegExp(/%playerscount%/).test(motd[index]) &&
         ll.hasExported("playersCount", "get")
     )
-        motdt = motdt.replace(
-            /%playerscount%/,
-            ll.import("playersCount", "get")()
+        mc.setMotd(
+            `${motd[index].replace(
+                /%playerscount%/,
+                ll.import("playersCount", "get")()
+            )}§r`
         );
-    mc.setMotd(`${motdt}§r`);
     index = index == motd.length - 1 ? 0 : index + 1;
 }, interval * 1000);

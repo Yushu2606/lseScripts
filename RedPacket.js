@@ -4,7 +4,7 @@ ll.registerPlugin("RedPacket", "红包", [1, 0, 0]);
 const config = new JsonConfigFile("plugins\\RedPacket\\config.json");
 const command = config.init("command", "redpacket");
 config.close();
-let db = new KVDatabase("plugins\\RedPacket\\data");
+const db = new KVDatabase("plugins\\RedPacket\\data");
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand(command, "打开红包菜单。");
     cmd.overload();
@@ -22,22 +22,19 @@ function main(pl) {
     pl.sendForm(fm, (pl, arg) => {
         switch (arg) {
             case 0:
-                list(pl);
-                break;
+                return list(pl);
             case 1:
-                const lv = pl.getLevel();
-                if (lv < 1) {
-                    pl.tell("§c红包发送失败：余额不足");
-                    break;
-                }
-                send(pl, lv);
+                if (pl.getLevel() < 1)
+                    return pl.tell("§c红包发送失败：余额不足");
+                send(pl);
         }
     });
 }
 function list(pl) {
     const fm = mc.newSimpleForm();
     fm.setTitle("红包列表");
-    for (let key of db.listKey()) {
+    const keys = db.listKey();
+    for (const key of keys) {
         const rpdata = db.get(key);
         fm.addButton(
             `${
@@ -46,12 +43,8 @@ function list(pl) {
         );
     }
     pl.sendForm(fm, (pl, arg) => {
-        if (arg == null) {
-            main(pl);
-            return;
-        }
-        const rpdata = db.get(db.listKey()[arg]);
-        redpacket(pl, rpdata);
+        if (arg == null) return main(pl);
+        redpacket(pl, db.get(keys[arg]));
     });
 }
 function redpacket(pl, rpdata) {
@@ -65,7 +58,7 @@ function redpacket(pl, rpdata) {
         rpdata.recipient[pl.xuid] = {
             time: system.getTimeStr(),
         };
-        db.set(rpdata.uuid, rpdata);
+        db.set(rpdata.guid, rpdata);
         pl.addExperience(rpdata.level * 7);
         pl.tell(
             `您领取了${data.xuid2name(rpdata.sender)}的红包${rpdata.msg}获得了${
@@ -78,31 +71,26 @@ function redpacket(pl, rpdata) {
     }\n单个数额：${rpdata.level}\n数量：${
         Object.keys(rpdata.recipient).length
     }/${rpdata.count}\n已领取用户：\n`;
-    for (let getter in rpdata.recipient)
+    for (const getter in rpdata.recipient)
         text += `${rpdata.recipient[getter].time} ${data.xuid2name(getter)}\n`;
     fm.setContent(text);
     pl.sendForm(fm, list);
 }
-function send(pl, lv) {
+function send(pl) {
     const fm = mc.newCustomForm();
     fm.setTitle("红包 —— 发送菜单");
     fm.addInput("信息", "字符串");
+    const lv = pl.getLevel();
     fm.addSlider("发送数量", 1, lv);
     fm.addSlider("单个数额", 1, lv);
     pl.sendForm(fm, (pl, args) => {
-        if (!args) {
-            main(pl);
-            return;
-        }
+        if (!args) return main(pl);
         const count = args[1] * args[2];
-        if (count > pl.getLevel()) {
-            pl.tell("§c红包发送失败：余额不足");
-            return;
-        }
+        if (count > pl.getLevel()) return pl.tell("§c红包发送失败：余额不足");
         pl.addLevel(-count);
-        const uuid = system.randomGuid();
-        db.set(uuid, {
-            uuid: uuid,
+        const guid = system.randomGuid();
+        db.set(guid, {
+            guid: guid,
             sender: pl.xuid,
             msg: args[0],
             count: args[1],

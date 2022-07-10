@@ -1,9 +1,9 @@
 "use strict";
 ll.registerPlugin("NameInfo", "名称信息", [1, 0, 0]);
 
-let msgs = {};
-let rtnMsgs = {};
-let names = {};
+const msgs = {};
+const rtnMsgs = {};
+const names = {};
 const db = new KVDatabase("plugins\\NameInfo\\data");
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand("nameinfo", "打开名称信息设置。");
@@ -15,7 +15,7 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 function setup(pl) {
-    let fm = mc.newCustomForm();
+    const fm = mc.newCustomForm();
     fm.setTitle("名称信息 - 设置");
     fm.addSwitch("显示血量");
     fm.addSwitch("显示延迟");
@@ -31,8 +31,8 @@ function setup(pl) {
     });
 }
 mc.listen("onTick", () => {
-    for (let pl of mc.getOnlinePlayers()) {
-        let dt = db.get(pl.xuid) ?? {};
+    for (const pl of mc.getOnlinePlayers()) {
+        const dt = db.get(pl.xuid) ?? {};
         const device = pl.getDevice();
         pl.rename(
             `${names[pl.xuid] ?? pl.realName}${
@@ -48,13 +48,13 @@ mc.listen("onChat", (pl, msg) => {
     if (!msgs[name]) msgs[name] = [];
     if (!rtnMsgs[name]) rtnMsgs[name] = [];
     if (rtnMsgs[name].indexOf(msg) > -1) return false;
-    let time = system.getTimeObj();
+    const time = system.getTimeObj();
     mc.broadcast(
         `${time.h}:${time.m < 10 ? 0 : ""}${time.m} ${
             pl.getDevice().os
         } ${name}： ${msg}`
     );
-    msgs[name].push([system.getTimeObj(), msg]);
+    msgs[name].push([time, msg]);
     rtnMsgs[name].push(msg);
     const xuid = pl.xuid;
     setName(name, xuid);
@@ -67,7 +67,7 @@ mc.listen("onChat", (pl, msg) => {
 });
 function setName(realName, xuid) {
     let name = "";
-    for (let msg of msgs[realName])
+    for (const msg of msgs[realName])
         name += `${msg[0].h}:${msg[0].m < 10 ? 0 : ""}${msg[0].m} ${
             msg[1]
         }§r\n`;

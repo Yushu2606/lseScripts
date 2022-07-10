@@ -2,7 +2,7 @@
 ll.registerPlugin("ChatHistory", "聊天历史", [1, 0, 0]);
 
 const db = new KVDatabase("plugins\\ChatHistory\\data");
-let msgs = db.get("msgs") ?? [];
+const msgs = db.get("msgs") ?? [];
 mc.listen("onChat", (pl, msg) => {
     while (msgs.length >= 100) msgs.shift();
     msgs.push({
@@ -14,7 +14,7 @@ mc.listen("onChat", (pl, msg) => {
     db.set("msgs", msgs);
 });
 mc.listen("onJoin", (pl) => {
-    for (let msg of msgs)
+    for (const msg of msgs)
         pl.tell(
             `${msg.time.h}:${msg.time.m < 10 ? 0 : ""}${msg.time.m} ${
                 msg.os
