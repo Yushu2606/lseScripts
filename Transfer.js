@@ -6,7 +6,7 @@ const command = config.init("command", "transfer");
 const rate = config.init("rate", 0.98);
 config.close();
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开转账菜单。");
+    const cmd = mc.newCommand(command, "打开转账菜单。", PermType.Any);
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (ori.player) return main(ori.player);

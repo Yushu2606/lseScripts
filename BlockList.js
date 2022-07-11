@@ -5,7 +5,7 @@ let jsonstr = File.readFrom("blocklist.json");
 if (!jsonstr) File.writeTo("blocklist.json", (jsonstr = "[]"));
 let db = data.parseJson(jsonstr);
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand("blocklist", "封禁用户。", PermType.GameMasters);
+    const cmd = mc.newCommand("blocklist", "封禁用户。");
     cmd.setEnum("ChangeAction", ["add", "remove"]);
     cmd.setEnum("OtherAction", ["update"]);
     cmd.mandatory("action", ParamType.Enum, "ChangeAction", 1);

@@ -6,7 +6,7 @@ const command = config.init("command", "express");
 const serviceCharge = config.init("serviceCharge", [0, 3]);
 config.close();
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开快递菜单。");
+    const cmd = mc.newCommand(command, "打开快递菜单。", PermType.Any);
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (ori.player) return main(ori.player);

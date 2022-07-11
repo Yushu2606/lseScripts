@@ -38,7 +38,7 @@ const eco = (() => {
 config.close();
 const db = new KVDatabase("plugins\\Bazaar\\data");
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开物品集市。");
+    const cmd = mc.newCommand(command, "打开物品集市。", PermType.Any);
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (ori.player) return main(ori.player);

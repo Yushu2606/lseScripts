@@ -16,7 +16,7 @@ mc.listen("onServerStarted", () => {
         );
         const title = menus.get("title", "菜单。");
         menus.close();
-        const cmd = mc.newCommand(commands[command], title);
+        const cmd = mc.newCommand(commands[command], title, PermType.Any);
         cmd.overload();
         cmd.setCallback((_cmd, ori, out, _res) => {
             if (ori.player) return menu(ori.player, command);

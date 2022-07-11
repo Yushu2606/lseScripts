@@ -8,7 +8,7 @@ mc.listen("onPlayerDie", (pl) => {
     const level = pl.getLevel();
     if (level < 1) return;
     const condition = Math.floor(tax[1] + tax[1] * level * 0.02);
-    const reduce = Math.round(Math.random() * (tax[0] - condition) + condition);
+    let reduce = Math.round(Math.random() * (tax[0] - condition) + condition);
     if (level < reduce) {
         reduce = level;
         pl.resetLevel();

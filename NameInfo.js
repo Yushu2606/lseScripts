@@ -6,7 +6,7 @@ const rtnMsgs = {};
 const names = {};
 const db = new KVDatabase("plugins\\NameInfo\\data");
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand("nameinfo", "打开名称信息设置。");
+    const cmd = mc.newCommand("nameinfo", "打开名称信息设置。", PermType.Any);
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (ori.player) return setup(ori.player);
