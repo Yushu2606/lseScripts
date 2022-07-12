@@ -4,7 +4,6 @@ ll.registerPlugin("ChatFormat", "消息格式化", [1, 0, 0]);
 const rtnMsgs = {};
 mc.listen("onChat", (pl, msg) => {
     const xuid = pl.xuid;
-    if (!rtnMsgs[xuid]) rtnMsgs[xuid] = [];
     if (!canOutput(xuid, msg)) return false;
     rtnMsgs[xuid].push(msg);
     const time = system.getTimeObj();
@@ -17,6 +16,8 @@ mc.listen("onChat", (pl, msg) => {
     return false;
 });
 function canOutput(xuid, msg) {
+    if (!rtnMsgs[xuid]) rtnMsgs[xuid] = [];
     if (rtnMsgs[xuid].indexOf(msg) > -1) return false;
+    return true;
 }
-ll.export("Chat", "canOutput", canOutput);
+ll.export(canOutput, "Chat", "canOutput");

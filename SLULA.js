@@ -16,7 +16,7 @@ mc.listen("onJoin", (pl) => {
             if (!arg) {
                 db.set(pl.xuid, true);
                 for (const player of mc.getOnlinePlayers()) {
-                    if (player == pl) continue;
+                    if (player.xuid == pl.xuid) continue;
                     player.sendToast(
                         ["源域", "方屿"][server],
                         `欢迎${pl.realName}加入了我们！`

@@ -23,12 +23,18 @@ function main(pl) {
         const rpdata = db.get(key);
         fm.addButton(
             `${
+                rpdata.count > Object.keys(rpdata.recipient).length
+                    ? pl.xuid in rpdata.recipient
+                        ? "（已领过）"
+                        : ""
+                    : "（已领完）"
+            }${
                 rpdata.msg ? `信息：${rpdata.msg}` : `发送时间：${rpdata.time}`
             }\n发送者：${data.xuid2name(rpdata.sender)}`
         );
     }
     pl.sendForm(fm, (pl, arg) => {
-        if (arg == null) return main(pl);
+        if (arg == null) return;
         switch (arg) {
             case 0:
                 if (pl.getLevel() < 1)
