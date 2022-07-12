@@ -2,7 +2,6 @@
 ll.registerPlugin("NameInfo", "名称信息", [1, 0, 0]);
 
 const msgs = {};
-const rtnMsgs = {};
 const names = {};
 const db = new KVDatabase("plugins\\NameInfo\\data");
 mc.listen("onServerStarted", () => {
@@ -44,30 +43,24 @@ mc.listen("onTick", () => {
     }
 });
 mc.listen("onChat", (pl, msg) => {
-    const name = pl.realName;
-    if (!msgs[name]) msgs[name] = [];
-    if (!rtnMsgs[name]) rtnMsgs[name] = [];
-    if (rtnMsgs[name].indexOf(msg) > -1) return false;
-    const time = system.getTimeObj();
-    mc.broadcast(
-        `${time.h}:${time.m < 10 ? 0 : ""}${time.m} ${
-            pl.getDevice().os
-        } ${name}： ${msg}`
-    );
-    msgs[name].push([time, msg]);
-    rtnMsgs[name].push(msg);
     const xuid = pl.xuid;
-    setName(name, xuid);
+    if (
+        ll.hasExported("Chat", "canOutput") &&
+        !ll.import("Chat", "canOutput")(xuid, msg)
+    )
+        return;
+    if (!msgs[xuid]) msgs[xuid] = [];
+    msgs[xuid].push([system.getTimeObj(), msg]);
+    const name = pl.realName;
+    setName(xuid, name);
     setTimeout(() => {
-        msgs[name].shift();
-        rtnMsgs[name].shift();
-        if (mc.getPlayer(name)) setName(name, xuid);
+        msgs[xuid].shift();
+        if (mc.getPlayer(xuid)) setName(xuid, name);
     }, 10000);
-    return false;
 });
-function setName(realName, xuid) {
+function setName(xuid, realName) {
     let name = "";
-    for (const msg of msgs[realName])
+    for (const msg of msgs[xuid])
         name += `${msg[0].h}:${msg[0].m < 10 ? 0 : ""}${msg[0].m} ${
             msg[1]
         }§r\n`;
