@@ -10,15 +10,16 @@ const motd = config.init("motd", [
 config.close();
 let index = 0;
 setInterval(() => {
-    if (
-        new RegExp(/%playerscount%/).test(motd[index]) &&
-        ll.hasExported("playersCount", "get")
-    )
-        mc.setMotd(
-            `${motd[index].replace(
-                /%playerscount%/,
-                ll.import("playersCount", "get")()
-            )}§r`
-        );
+    mc.setMotd(
+        `${
+            new RegExp(/%playerscount%/).test(motd[index]) &&
+            ll.hasExported("playersCount", "get")
+                ? motd[index].replace(
+                      /%playerscount%/,
+                      ll.import("playersCount", "get")()
+                  )
+                : motd[index]
+        }§r`
+    );
     index = index == motd.length - 1 ? 0 : index + 1;
 }, interval * 1000);

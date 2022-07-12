@@ -16,23 +16,8 @@ mc.listen("onServerStarted", () => {
 });
 function main(pl) {
     const fm = mc.newSimpleForm();
-    fm.setTitle("红包菜单");
-    fm.addButton("红包列表");
-    fm.addButton("发送红包");
-    pl.sendForm(fm, (pl, arg) => {
-        switch (arg) {
-            case 0:
-                return list(pl);
-            case 1:
-                if (pl.getLevel() < 1)
-                    return pl.tell("§c红包发送失败：余额不足");
-                send(pl);
-        }
-    });
-}
-function list(pl) {
-    const fm = mc.newSimpleForm();
     fm.setTitle("红包列表");
+    fm.addButton("发送红包");
     const keys = db.listKey();
     for (const key of keys) {
         const rpdata = db.get(key);
@@ -44,7 +29,14 @@ function list(pl) {
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return main(pl);
-        redpacket(pl, db.get(keys[arg]));
+        switch (arg) {
+            case 0:
+                if (pl.getLevel() < 1)
+                    return pl.tell("§c红包发送失败：余额不足");
+                return send(pl);
+            default:
+                redpacket(pl, db.get(keys[arg - 1]));
+        }
     });
 }
 function redpacket(pl, rpdata) {
@@ -74,7 +66,7 @@ function redpacket(pl, rpdata) {
     for (const getter in rpdata.recipient)
         text += `${rpdata.recipient[getter].time} ${data.xuid2name(getter)}\n`;
     fm.setContent(text);
-    pl.sendForm(fm, list);
+    pl.sendForm(fm, main);
 }
 function send(pl) {
     const fm = mc.newCustomForm();
