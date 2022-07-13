@@ -96,7 +96,8 @@ function main(pl) {
 function createShop(pl) {
     const fm = mc.newCustomForm();
     fm.setTitle("创建店铺");
-    fm.addLabel(`将花费${initialFunding}${eco.name}创建店铺`);
+    if (initialFunding > 0)
+        fm.addLabel(`将花费${initialFunding}${eco.name}创建店铺`);
     fm.addInput("店铺名称", "字符串（可空）");
     fm.addInput("店铺简介", "字符串（可空）");
     fm.addInput("店铺标志", "字符串（可空）");
@@ -133,7 +134,9 @@ function shopManagement(pl) {
             Object.keys(shop.items).length
         }个\n交易次数：${
             shop.history.length + shop.pending.length
-        }次\n创建时间：${shop.createTime}\n当前税率：${serviceCharge * 100}％`
+        }次\n创建时间：${shop.createTime}${
+            serviceCharge > 0 ? `\n当前税率：${serviceCharge * 100}％` : ""
+        }`
     );
     fm.addButton("信息设置");
     fm.addButton("物品管理");
