@@ -80,17 +80,20 @@ function main(pl) {
         );
     }
     pl.sendForm(fm, (pl, arg) => {
-        if (arg == 0) {
-            if (db.get(pl.xuid)) return shopManagement(pl);
-            if (eco.get(pl) < initialFunding) {
-                pl.tell(
-                    `§c店铺创建失败：余额不足（需要${initialFunding}${eco.name}）`
-                );
-                return main(pl);
-            }
-            return createShop(pl);
+        if (arg == null) return;
+        switch (arg) {
+            case 0:
+                if (db.get(pl.xuid)) return shopManagement(pl);
+                if (eco.get(pl) < initialFunding) {
+                    pl.tell(
+                        `§c店铺创建失败：余额不足（需要${initialFunding}${eco.name}）`
+                    );
+                    return main(pl);
+                }
+                return createShop(pl);
+            default:
+                itemList(pl, list[arg - 1]);
         }
-        if (arg != null) itemList(pl, list[arg - 1]);
     });
 }
 function createShop(pl) {
@@ -239,9 +242,8 @@ function itemBuy(pl, owner, item) {
     fm.addLabel(`NBT：${item.snbt}`);
     fm.addLabel(`价格：${item.price}/个`);
     const count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
-    if (count > 1) {
-        fm.addSlider("选择购买数量", 1, count);
-    } else fm.addLabel("将购买1个");
+    if (count > 1) fm.addSlider("选择购买数量", 1, count);
+    else fm.addLabel("将购买1个");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return itemList(pl, owner);
         const shop = db.get(owner);
@@ -304,8 +306,7 @@ function itemUpload(pl) {
     const fm = mc.newCustomForm();
     if (itemsmsg.length < 1) {
         pl.tell("§c物品上架失败：背包为空");
-        shopItem(pl);
-        return;
+        return shopItem(pl);
     }
     fm.setTitle("上架物品");
     fm.addDropdown("物品", itemsmsg);
@@ -358,36 +359,29 @@ function itemManagement(pl, arg) {
     const count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
     fm.addSlider("上架数量", 0, count, 1, count);
     pl.sendForm(fm, (pl, args) => {
-        if (!args) {
-            shopItem(pl);
-            return;
-        }
+        if (!args) return shopItem(pl);
         if (isNaN(args[1] ?? item.price)) {
             pl.tell(
                 `§c物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非数字）`
             );
-            shopItem(pl);
-            return;
+            return shopItem(pl);
         }
         if ((args[1] ?? item.price) <= 0) {
             pl.tell(
                 `§c物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非正数）`
             );
-            shopItem(pl);
-            return;
+            return shopItem(pl);
         }
         if (!item) {
             pl.tell(`§c物品${args[0]}§r * ${args[2]}修改失败：已被买走`);
-            shopItem(pl);
-            return;
+            return shopItem(pl);
         }
         const shop = db.get(pl.xuid);
         const itemNBT = NBT.parseSNBT(shop.items[item.guid].snbt);
         const count = Number(itemNBT.getTag("Count"));
         if (count < args[2]) {
             pl.tell(`§c物品${args[0]}§r * ${args[2]}修改失败：下架过多`);
-            shopItem(pl);
-            return;
+            return shopItem(pl);
         }
         shop.items[item.guid].name = args[0] || item.name;
         shop.items[item.guid].price = args[1] ?? item.price;
