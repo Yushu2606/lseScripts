@@ -74,10 +74,7 @@ function main(pl) {
         const shop = db.get(owner);
         if (Object.keys(shop.items).length < 1) continue;
         else list.push(owner);
-        fm.addButton(
-            `${shop.name}§r\n店主：${data.xuid2name(owner)}`,
-            shop.icon
-        );
+        fm.addButton(`${shop.name}§r\n店主：${data.xuid2name(owner)}`);
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return;
@@ -103,7 +100,6 @@ function createShop(pl) {
         fm.addLabel(`将花费${initialFunding}${eco.name}创建店铺`);
     fm.addInput("店铺名称", "字符串（可空）");
     fm.addInput("店铺简介", "字符串（可空）");
-    fm.addInput("店铺标志", "字符串（可空）");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return main(pl);
         if (eco.get(pl) < initialFunding) {
@@ -119,7 +115,6 @@ function createShop(pl) {
             name: args[1],
             createTime: system.getTimeStr(),
             intro: args[2],
-            icon: args[3],
             items: {},
             history: [],
             pending: [],
@@ -144,7 +139,6 @@ function shopManagement(pl) {
     fm.addButton("信息设置");
     fm.addButton("物品管理");
     fm.addButton("查看历史纪录");
-    fm.addButton(`${shop.name}§r\n-- 预览模式 -- `, shop.icon);
     pl.sendForm(fm, (pl, arg) => {
         switch (arg) {
             case 0:
@@ -184,12 +178,10 @@ function shopInfo(pl) {
     const shop = db.get(pl.xuid);
     fm.addInput("店铺名称", "字符串（可空）", shop.name);
     fm.addInput("店铺简介", "字符串（可空）", shop.intro);
-    fm.addInput("店铺标志", "字符串（可空）", shop.icon);
     pl.sendForm(fm, (pl, args) => {
         if (!args) return shopManagement(pl);
         shop.name = args[0];
         shop.intro = args[1];
-        shop.icon = args[2];
         db.set(pl.xuid, shop);
         pl.tell(`店铺${args[0]}信息修改成功`);
         shopManagement(pl);
