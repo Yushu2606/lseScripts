@@ -403,8 +403,8 @@ function itemManagement(pl, arg) {
         db.set(pl.xuid, shop);
         pl.tell(
             wbd
-                ? `物品${args[0]}§r * ${args[2]}修改成功`
-                : `物品${args[0]}§r下架成功`
+                ? `物品${args[0]}§r下架成功`
+                : `物品${args[0]}§r * ${args[2]}修改成功`
         );
         shopItem(pl);
     });

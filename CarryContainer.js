@@ -58,9 +58,6 @@ mc.listen("onTick", () => {
         const player = mc.getPlayer(xuid);
         if (!player) continue;
         player.tell(`正在搬运${db.get(xuid).name}`, 5);
+        if (player.isSprinting()) player.setSprinting(false);
     }
-});
-mc.listen("onMove", (player) => {
-    if (player.xuid && !db.get(player.xuid)) return;
-    player.setSprinting(false);
 });
