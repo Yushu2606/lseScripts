@@ -66,8 +66,10 @@ function main(pl) {
             const newitem = mc.newItem(
                 itemNbt.setByte("Count", Number(args[index]))
             );
-            if (!pl1.getInventory().hasRoomFor(newitem))
-                return pl.tell(`§c物品送达失败：${pl1.realName}背包已满`);
+            if (!pl1.getInventory().hasRoomFor(newitem)) {
+                pl.tell(`§c物品${item.name}§r§c * ${args[index]}送达失败：${pl1.realName}背包已满`);
+                continue
+            }
             pl.reduceLevel(reduce);
             if (item.count == args[index]) item.setNull();
             else
@@ -80,7 +82,7 @@ function main(pl) {
                 count: args[index],
             });
         }
-        if (sendItems.length < 1) return pl.tell("§c物品送达失败：未选择物品");
+        if (sendItems.length < 1) return;
         pl.refreshItems();
         pl.tell(`已向${pl1.realName}发送了以下物品（花费${reduce}级经验）：`);
         pl1.tell(`${pl.realName}向您发送了以下物品：`);
