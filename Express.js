@@ -29,9 +29,9 @@ function main(pl) {
         fm.addSlider(
             `[${inventoryItems.indexOf(item)}] ${item.name}§r（${item.type}:${
                 item.aux
-            }）* ${item.count}`,
-            1,
-            64
+            }）`,
+            0,
+            item.count
         );
         items.push(item);
     }
@@ -67,8 +67,10 @@ function main(pl) {
                 itemNbt.setByte("Count", Number(args[index]))
             );
             if (!pl1.getInventory().hasRoomFor(newitem)) {
-                pl.tell(`§c物品${item.name}§r§c * ${args[index]}送达失败：${pl1.realName}背包已满`);
-                continue
+                pl.tell(
+                    `§c物品${item.name}§r§c * ${args[index]}送达失败：${pl1.realName}背包已满`
+                );
+                continue;
             }
             pl.reduceLevel(reduce);
             if (item.count == args[index]) item.setNull();
