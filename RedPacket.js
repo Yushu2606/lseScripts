@@ -57,16 +57,16 @@ function redpacket(pl, rpdata) {
             time: system.getTimeStr(),
         };
         db.set(rpdata.guid, rpdata);
-        pl.addExperience(rpdata.level * 7);
+        pl.addExperience(rpdata.level);
         pl.tell(
             `您领取了${data.xuid2name(rpdata.sender)}的红包${rpdata.msg}获得了${
-                rpdata.level * 7
+                rpdata.level
             }经验值`
         );
     }
     let text = `发送者：${data.xuid2name(rpdata.sender)}\n发送时间：${
         rpdata.time
-    }\n单个数额：${rpdata.level}\n数量：${
+    }\n单个数额：${rpdata.level}经验\n数量：${
         Object.keys(rpdata.recipient).length
     }/${rpdata.count}\n已领取用户：\n`;
     for (const getter in rpdata.recipient)
@@ -78,14 +78,15 @@ function send(pl) {
     const fm = mc.newCustomForm();
     fm.setTitle("红包 —— 发送菜单");
     fm.addInput("信息", "字符串");
-    const lv = pl.getLevel();
-    fm.addSlider("发送数量", 1, lv);
-    fm.addSlider("单个数额", 1, lv);
+    const xp = pl.getCurrentExperience();
+    fm.addSlider("发送数量", 1, xp);
+    fm.addSlider("单个数额", 1, xp);
     pl.sendForm(fm, (pl, args) => {
         if (!args) return main(pl);
         const count = args[1] * args[2];
-        if (count > pl.getLevel()) return pl.tell("§c红包发送失败：余额不足");
-        pl.addLevel(-count);
+        if (count > pl.getCurrentExperience())
+            return pl.tell("§c红包发送失败：余额不足");
+        pl.reduceExperience(count);
         const guid = system.randomGuid();
         db.set(guid, {
             guid: guid,

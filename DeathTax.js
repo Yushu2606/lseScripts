@@ -12,6 +12,6 @@ mc.listen("onPlayerDie", (pl) => {
     if (level < reduce) {
         reduce = level;
         pl.resetLevel();
-    } else pl.addLevel(-reduce);
+    } else pl.reduceLevel(reduce);
     pl.tell(`扣除${reduce}级经验`);
 });

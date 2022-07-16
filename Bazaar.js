@@ -6,7 +6,7 @@ const command = config.init("command", "bazaar");
 const initialFunding = config.init("initialFunding", 7);
 const serviceCharge = config.init("serviceCharge", 0.02);
 const currencyType = config.init("currencyType", "llmoney");
-const currencyName = config.init("currencyName", "货币");
+const currencyName = config.init("currencyName", "元");
 const eco = (() => {
     switch (currencyType) {
         case "llmoney":
@@ -26,10 +26,10 @@ const eco = (() => {
             };
         case "xplevel":
             return {
-                add: (pl, money) => pl.addLevel(money),
-                reduce: (pl, money) => pl.addLevel(-money),
-                get: (pl) => pl.getLevel(),
-                name: "级经验",
+                add: (pl, money) => pl.addExperience(money),
+                reduce: (pl, money) => pl.reduceExperience(money),
+                get: (pl) => pl.getTotalExperience(),
+                name: "经验值",
             };
         default:
             throw "配置项异常！";

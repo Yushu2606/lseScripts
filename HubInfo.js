@@ -42,21 +42,23 @@ setInterval(() => {
         ] = 0;
         list[
             `延迟：§${
-                pldv.avgPing < 30
+                pldv.lastPing < 30
                     ? "a"
-                    : pldv.avgPing < 50
+                    : pldv.lastPing < 50
                     ? "e"
-                    : pldv.avgPing < 100
+                    : pldv.lastPing < 100
                     ? "c"
-                    : pldv.avgPing < 200
+                    : pldv.lastPing < 200
                     ? "4"
-                    : pldv.avgPing < 500
+                    : pldv.lastPing < 500
                     ? 0
                     : "b"
-            }${pldv.avgPing}§r毫秒 §${pldv.avgPacketLoss > 1 ? "c" : "a"}${
-                pldv.avgPacketLoss
+            }${pldv.lastPing}§r毫秒 §${pldv.lastPacketLoss > 1 ? "c" : "a"}${
+                pldv.lastPacketLoss
             }％§r丢包`
         ] = 0;
+        list[`总经验值：${pl.getTotalExperience()}`] = 0;
+        list[`当前经验值：${pl.getCurrentExperience()}`] = 0;
         switch (db.get(pl.xuid)) {
             case 0:
                 continue;

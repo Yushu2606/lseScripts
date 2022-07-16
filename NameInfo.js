@@ -44,11 +44,6 @@ mc.listen("onTick", () => {
 });
 mc.listen("onChat", (pl, msg) => {
     const xuid = pl.xuid;
-    if (
-        ll.hasExported("Chat", "canOutput") &&
-        !ll.import("Chat", "canOutput")(xuid, msg)
-    )
-        return;
     if (!msgs[xuid]) msgs[xuid] = [];
     msgs[xuid].push([system.getTimeObj(), msg]);
     const name = pl.realName;

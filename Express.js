@@ -58,7 +58,7 @@ function main(pl) {
         const newitem = mc.newItem(itemNbt.setByte("Count", Number(args[2])));
         if (!pl1.getInventory().hasRoomFor(newitem))
             return pl.tell(`§c物品送达失败：${pls[args[0]]}背包已满`);
-        pl.addLevel(-reduce);
+        pl.reduceLevel(reduce);
         if (item.count == args[2]) item.setNull();
         else
             item.setNbt(itemNbt.setByte("Count", Number(item.count - args[2])));
