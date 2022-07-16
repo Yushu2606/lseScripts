@@ -57,8 +57,9 @@ setInterval(() => {
                 pldv.lastPacketLoss
             }％§r丢包`
         ] = 0;
-        list[`总经验值：${pl.getTotalExperience()}`] = 0;
-        list[`当前经验值：${pl.getCurrentExperience()}`] = 0;
+        list[
+            `经验：${pl.getTotalExperience()}|${pl.getCurrentExperience()}`
+        ] = 0;
         switch (db.get(pl.xuid)) {
             case 0:
                 continue;

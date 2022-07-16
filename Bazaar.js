@@ -27,7 +27,8 @@ const eco = (() => {
         case "xplevel":
             return {
                 add: (pl, money) => pl.addExperience(money),
-                reduce: (pl, money) => pl.reduceExperience(money),
+                reduce: (pl, money, isLv) =>
+                    isLv ? pl.reduceLevel(money) : pl.reduceExperience(money),
                 get: (pl) => pl.getTotalExperience(),
                 name: "经验值",
             };
@@ -108,7 +109,7 @@ function createShop(pl) {
             );
             return main(pl);
         }
-        eco.reduce(pl, initialFunding);
+        eco.reduce(pl, initialFunding, true);
         db.set(pl.xuid, {
             owner: pl.xuid,
             guid: system.randomGuid(),
