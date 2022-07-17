@@ -69,7 +69,7 @@ function main(pl) {
     const fm = mc.newSimpleForm();
     fm.setTitle("物品集市");
     const list = [];
-    fm.addButton(db.get(pl.xuid) ? "管理店铺" : "创建店铺");
+    fm.addButton(db.get(pl.xuid) ? "店铺管理" : "创建店铺");
     for (const owner of db.listKey()) {
         if (owner == pl.xuid) continue;
         const shop = db.get(owner);
@@ -114,7 +114,6 @@ function createShop(pl) {
             owner: pl.xuid,
             guid: system.randomGuid(),
             name: args[1],
-            createTime: system.getTimeStr(),
             intro: args[2],
             items: {},
             history: [],
@@ -127,19 +126,15 @@ function createShop(pl) {
 function shopManagement(pl) {
     const fm = mc.newSimpleForm();
     const shop = db.get(pl.xuid);
-    fm.setTitle(shop.name);
+    fm.setTitle("店铺管理");
     fm.setContent(
-        `${shop.intro}§r\n目前在售物品数：${
-            Object.keys(shop.items).length
-        }个\n交易次数：${
-            shop.history.length + shop.pending.length
-        }次\n创建时间：${shop.createTime}${
-            serviceCharge > 0 ? `\n当前税率：${serviceCharge * 100}％` : ""
-        }`
+        serviceCharge > 0 ? `\n当前税率：${serviceCharge * 100}％` : ""
     );
     fm.addButton("信息设置");
-    fm.addButton("物品管理");
-    fm.addButton("查看历史纪录");
+    fm.addButton(`物品管理\n货架上共有${Object.keys(shop.items).length}个商品`);
+    fm.addButton(
+        `查看历史纪录\n共有${shop.history.length + shop.pending.length}条`
+    );
     pl.sendForm(fm, (pl, arg) => {
         switch (arg) {
             case 0:
@@ -158,14 +153,14 @@ function itemList(pl, owner) {
     const shop = db.get(owner);
     const itemcount = Object.keys(shop.items).length;
     fm.setTitle(shop.name);
-    fm.setContent(`${shop.intro}§r\n目前在售物品数：${itemcount}个`);
+    fm.setContent(`${shop.intro}§r\n货架上共有${itemcount}个物品`);
     if (itemcount > 0)
         for (const item of Object.values(shop.items)) {
             const itemNBT = NBT.parseSNBT(item.snbt);
             fm.addButton(
                 `${item.name}§r（${itemNBT.getTag("Name")}） * ${itemNBT.getTag(
                     "Count"
-                )}\n价格：${item.price}/个`
+                )}\n价格：${item.price}${eco.name}/个`
             );
         }
     pl.sendForm(fm, (pl, arg) => {
@@ -198,7 +193,7 @@ function shopItem(pl) {
         fm.addButton(
             `${item.name}§r（${itemNBT.getTag("Name")}） * ${itemNBT.getTag(
                 "Count"
-            )}\n价格：${item.price}/个`
+            )}\n价格：${item.price}${eco.name}/个`
         );
     }
     pl.sendForm(fm, (pl, arg) => {
@@ -233,7 +228,7 @@ function itemBuy(pl, owner, item) {
     fm.setTitle("购买确认");
     fm.addLabel(`物品名：${item.name}`);
     fm.addLabel(`NBT：${item.snbt}`);
-    fm.addLabel(`价格：${item.price}/个`);
+    fm.addLabel(`价格：${item.price}${eco.name}/个`);
     const count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
     if (count > 1) fm.addSlider("选择购买数量", 1, count);
     else fm.addLabel("将购买1个");

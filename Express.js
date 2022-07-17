@@ -19,11 +19,11 @@ function main(pl) {
     for (const plget of mc.getOnlinePlayers())
         if (plget.xuid != pl.xuid) pls.push(plget.realName);
     if (pls.length < 1) return pl.tell("§c物品送达失败：暂无可送达用户");
-    const items = [];
-    const inventoryItems = pl.getInventory().getAllItems();
     const fm = mc.newCustomForm();
     fm.setTitle("快递菜单");
     fm.addDropdown("选择送达对象", pls);
+    const items = [];
+    const inventoryItems = pl.getInventory().getAllItems();
     for (const item of inventoryItems) {
         if (item.isNull()) continue;
         fm.addSlider(
