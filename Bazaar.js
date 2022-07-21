@@ -24,7 +24,7 @@ const eco = (() => {
                 get: (pl) => pl.getScore(scoreboard),
                 name: currencyName,
             };
-        case "xplevel":
+        case "exp":
             return {
                 add: (pl, money) => pl.addExperience(money),
                 reduce: (pl, money, isLv) =>
@@ -98,7 +98,11 @@ function createShop(pl) {
     const fm = mc.newCustomForm();
     fm.setTitle("创建店铺");
     if (initialFunding > 0)
-        fm.addLabel(`将花费${initialFunding}${eco.name}创建店铺`);
+        fm.addLabel(
+            `将花费${initialFunding}${
+                currencyType == "exp" ? "级经验" : eco.name
+            }创建店铺`
+        );
     fm.addInput("店铺名称", "字符串（可空）");
     fm.addInput("店铺简介", "字符串（可空）");
     pl.sendForm(fm, (pl, args) => {
@@ -216,7 +220,7 @@ function shopHistroy(pl) {
             historyData.buyer
         )}\n物品：${historyData.item.name}§r\n数量：${
             historyData.count
-        }\n单价：${historyData.item.price}${eco.name}\n物品NBT：${
+        }\n单价：${historyData.item.price}${eco.name}\nNBT：${
             historyData.item.snbt
         }`;
     }
