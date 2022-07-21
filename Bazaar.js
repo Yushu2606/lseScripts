@@ -236,6 +236,107 @@ function itemBuy(pl, owner, item) {
     const count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
     if (count > 1) fm.addSlider("选择购买数量", 1, count);
     else fm.addLabel("将购买1个");
+    const itemNBT = NBT.parseSNBT(item.snbt);
+    const tag = itemNBT.getTag("tag");
+    const ench = tag ? tag.getData("ench") : undefined;
+    if (ench) {
+        let msg = "附魔：";
+        for (const e of ench.toArray()) {
+            msg += `\n${
+                [
+                    "保护",
+                    "火焰保护",
+                    "摔落保护",
+                    "爆炸保护",
+                    "弹射物保护",
+                    "荆棘",
+                    "水下呼吸",
+                    "深海探索者",
+                    "水下速掘",
+                    "锋利",
+                    "亡灵杀手",
+                    "节肢杀手",
+                    "击退",
+                    "火焰附加",
+                    "抢夺",
+                    "效率",
+                    "精准采集",
+                    "耐久",
+                    "时运",
+                    "力量",
+                    "冲击",
+                    "火矢",
+                    "无限",
+                    "海之眷顾",
+                    "饵钓",
+                    "冰霜行者",
+                    "经验修补",
+                    "绑定诅咒",
+                    "消失诅咒",
+                    "穿刺",
+                    "激流",
+                    "忠诚",
+                    "引雷",
+                    "多重射击",
+                    "穿透",
+                    "快速装填",
+                    "灵魂疾行",
+                    "迅捷潜行",
+                ][e.id]
+            } ${e.lvl}`;
+        }
+        fm.addLabel(msg);
+    }
+    if (/potion/.test(itemNBT.getData("Name")))
+        fm.addLabel(
+            `效果：${
+                [
+                    "水",
+                    "平凡",
+                    "延长平凡",
+                    "浑浊",
+                    "粗制",
+                    "夜视",
+                    "延长夜视",
+                    "隐身",
+                    "延长隐身",
+                    "跳跃",
+                    "延长跳跃",
+                    "加强跳跃",
+                    "抗火",
+                    "延长抗火",
+                    "迅捷",
+                    "延长迅捷",
+                    "加强迅捷",
+                    "迟缓",
+                    "延长迟缓",
+                    "水肺",
+                    "延长水肺",
+                    "治疗",
+                    "加强治疗",
+                    "伤害",
+                    "加强伤害",
+                    "剧毒",
+                    "延长剧毒",
+                    "加强剧毒",
+                    "再生",
+                    "延长再生",
+                    "加强再生",
+                    "力量",
+                    "延长力量",
+                    "加强力量",
+                    "虚弱",
+                    "延长虚弱",
+                    "衰变",
+                    "神龟",
+                    "延长神龟",
+                    "加强神龟",
+                    "缓降",
+                    "延长缓降",
+                    "加强迟缓",
+                ][itemNBT.getTag("Damage")]
+            }`
+        );
     pl.sendForm(fm, (pl, args) => {
         if (!args) return itemList(pl, owner);
         const shop = db.get(owner);
