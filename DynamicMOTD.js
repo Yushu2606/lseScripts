@@ -12,10 +12,9 @@ let index = 0;
 setInterval(() => {
     mc.setMotd(
         `${
-            new RegExp(/%playerscount%/).test(motd[index]) &&
             ll.hasExported("playersCount", "get")
                 ? motd[index].replace(
-                      /%playerscount%/,
+                      /%playerscount%/g,
                       ll.import("playersCount", "get")()
                   )
                 : motd[index]
