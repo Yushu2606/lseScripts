@@ -82,12 +82,10 @@ function main(pl) {
         switch (arg) {
             case 0:
                 if (db.get(pl.xuid)) return shopManagement(pl);
-                if (eco.get(pl) < initialFunding) {
-                    pl.tell(
+                if (eco.get(pl) < initialFunding)
+                    return pl.tell(
                         `§c店铺创建失败：余额不足（需要${initialFunding}${eco.name}）`
                     );
-                    return main(pl);
-                }
                 return createShop(pl);
             default:
                 itemList(pl, list[arg - 1]);
@@ -101,7 +99,7 @@ function createShop(pl) {
         fm.addLabel(
             `将花费${initialFunding}${
                 currencyType == "exp" ? "级经验" : eco.name
-            }创建店铺`
+            }`
         );
     fm.addInput("店铺名称", "字符串（可空）");
     fm.addInput("店铺简介", "字符串（可空）");
