@@ -36,9 +36,9 @@ setInterval(() => {
                     : tps > 5
                     ? "4"
                     : 0
-            }${Math.abs(Math.floor(100 - tps / 0.2))}％§r（${
-                tps == Math.round(tps) ? "" : "~"
-            }${Math.round(tps)}刻/秒）`
+            }${tps == Math.round(tps) ? "" : "~"}${Math.abs(
+                Math.floor(100 - tps / 0.2)
+            )}％`
         ] = 0;
         list[
             `延迟：§${
@@ -53,19 +53,24 @@ setInterval(() => {
                     : pldv.lastPing < 500
                     ? 0
                     : "b"
-            }${pldv.lastPing}§r毫秒 §${pldv.lastPacketLoss > 1 ? "c" : "a"}${
-                pldv.lastPacketLoss
-            }％§r丢包`
+            }${pldv.lastPing}毫秒`
         ] = 0;
         list[
-            `经验：${pl.getTotalExperience()}|${pl.getCurrentExperience()}`
+            `丢包：§${pldv.lastPacketLoss > 1 ? "c" : "a"}${
+                pldv.lastPacketLoss == Math.round(pldv.lastPacketLoss)
+                    ? ""
+                    : "~"
+            }${Math.round(pldv.lastPacketLoss)}％`
+        ] = 0;
+        list[
+            `经验：${pl.getCurrentExperience()}/${pl.getTotalExperience()}`
         ] = 0;
         switch (db.get(pl.xuid)) {
             case 0:
                 continue;
             case 1:
                 pl.setSidebar(
-                    `${pl.realName}在§${
+                    `${pl.realName}·§${
                         "1234567890abcdefglmno"[Math.floor(Math.random() * 21)]
                     }${serverName}`,
                     list
@@ -73,7 +78,7 @@ setInterval(() => {
                 break;
             case 2:
                 list[
-                    `${pl.realName}在§${
+                    `${pl.realName}·§${
                         "1234567890abcdefglmno"[Math.floor(Math.random() * 21)]
                     }${serverName}`
                 ] = 0;

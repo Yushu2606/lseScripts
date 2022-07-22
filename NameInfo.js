@@ -37,7 +37,9 @@ mc.listen("onTick", () => {
             `${names[pl.xuid] ?? pl.realName}${
                 dt.showHealth ? `\n血量 ${pl.health}/${pl.maxHealth}` : ""
             }${dt.showPing ? `\n延迟 ${device.avgPing}毫秒` : ""}${
-                dt.showPing ? `\n丢包率 ${device.avgPacketLoss}％` : ""
+                dt.showPing
+                    ? `\n丢包率 ${Math.round(device.avgPacketLoss)}％`
+                    : ""
             }`
         );
     }
