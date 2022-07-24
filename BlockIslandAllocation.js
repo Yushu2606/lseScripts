@@ -15,12 +15,20 @@ mc.listen("onJoin", (pl) => {
     if (db.listKey().indexOf(pl.xuid) > -1) return;
     sendInit(pl);
 });
+mc.listen("onPlaceBlock", (pl, bl) => {
+    if (
+        (bl.pos.x < 512 && bl.pos.x > -512) ||
+        (bl.pos.z < 512 && bl.pos.z > -512)
+    ) {
+        pl.tell("你不能操作这片区域");
+        return false;
+    }
+});
 mc.listen("onDestroyBlock", (pl, bl) => {
     let re = true;
     for (const key of db.listKey()) {
         const island = db.get(key);
         if (
-            island.version == "team" ||
             island.pos.x != bl.pos.x ||
             island.pos.y != bl.pos.y ||
             island.pos.z != bl.pos.z
@@ -48,9 +56,9 @@ function sendInit(pl) {
             switch (arg) {
                 case 0:
                     pl.tell("您选择了「经典单方块」\n正在为您分配，请稍候…");
-                    const x = returnx();
+                    const x = returnPos(true);
                     const y = randomInt(96, 288);
-                    const z = returnz();
+                    const z = returnPos(false);
                     pl.setRespawnPosition(x, y + 1, z, 0);
                     const timerid = setInterval(() => {
                         if (
@@ -135,23 +143,19 @@ function sendInit(pl) {
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
-function returnx() {
-    let x = randomInt(-65536, 65535);
+function returnPos(isX) {
+    let pos = randomInt(-65536, 65535);
     for (const key of db.listKey()) {
         const d = db.get(key);
-        if (d.version == "team" || d.pos.x < x - 512 || x + 512 < d.pos.x)
+        if (
+            d.version == "team" || isX
+                ? d.pos.x
+                : d.pos.z < pos - 512 || pos + 512 < isX
+                ? d.pos.x
+                : d.pos.z
+        )
             continue;
-        x = returnx();
+        pos = returnPos(isX);
     }
-    return x;
-}
-function returnz() {
-    let z = randomInt(-65536, 65535);
-    for (const key of db.listKey()) {
-        const d = db.get(key);
-        if (d.version == "team" || d.pos.z < z - 512 || z + 512 < d.pos.z)
-            continue;
-        z = returnz();
-    }
-    return z;
+    return pos;
 }
