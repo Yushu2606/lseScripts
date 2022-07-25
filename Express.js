@@ -79,10 +79,7 @@ function main(pl) {
                     itemNbt.setByte("Count", Number(item.count - args[index]))
                 );
             pl1.giveItem(newitem);
-            sendItems.push({
-                name: item.name,
-                count: args[index],
-            });
+            sendItems.push({ name: item.name, count: args[index] });
         }
         if (sendItems.length < 1) return;
         pl.refreshItems();

@@ -25,7 +25,6 @@ mc.listen("onServerStarted", () => {
         cmd.setup();
     }
 });
-
 function menu(pl, mu) {
     const menus = new JsonConfigFile(
         `plugins\\Menu\\menus\\${mu}.json`,

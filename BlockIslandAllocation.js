@@ -3,14 +3,7 @@ ll.registerPlugin("BlockIslandAllocation", "岛屿分配系统", [1, 0, 0]);
 
 const db = new KVDatabase("plugins\\BlockIsland\\data");
 if (db.listKey().indexOf("spawn") < 0)
-    db.set("spawn", {
-        version: "spawn",
-        pos: {
-            x: 0,
-            y: -64,
-            z: 0,
-        },
-    });
+    db.set("spawn", { version: "spawn", pos: { x: 0, y: -64, z: 0 } });
 mc.listen("onJoin", (pl) => {
     if (db.listKey().indexOf(pl.xuid) > -1) return;
     sendInit(pl);
@@ -70,11 +63,7 @@ function sendInit(pl) {
                     }, 50);
                     db.set(pl.xuid, {
                         version: "classic",
-                        pos: {
-                            x: x,
-                            y: y,
-                            z: z,
-                        },
+                        pos: { x: x, y: y, z: z },
                     });
                     return pl.tell("分配完毕");
                 case 1:
@@ -148,11 +137,9 @@ function returnPos(isX) {
     for (const key of db.listKey()) {
         const d = db.get(key);
         if (
-            d.version == "team" || isX
-                ? d.pos.x
-                : d.pos.z < pos - 512 || pos + 512 < isX
-                ? d.pos.x
-                : d.pos.z
+            d.version == "team" ||
+            (isX ? d.pos.x : d.pos.z) < pos - islandRadius ||
+            pos + islandRadius < (isX ? d.pos.x : d.pos.z)
         )
             continue;
         pos = returnPos(isX);

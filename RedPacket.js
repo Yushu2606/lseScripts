@@ -53,9 +53,7 @@ function redpacket(pl, rpdata) {
         !(pl.xuid in rpdata.recipient) &&
         rpdata.count > Object.keys(rpdata.recipient).length
     ) {
-        rpdata.recipient[pl.xuid] = {
-            time: system.getTimeStr(),
-        };
+        rpdata.recipient[pl.xuid] = { time: system.getTimeStr() };
         db.set(rpdata.guid, rpdata);
         pl.addExperience(rpdata.level);
         pl.tell(
