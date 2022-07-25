@@ -110,10 +110,7 @@ function sendInit(pl) {
                                 0
                             );
                             pl.teleport(d2.pos.x, d2.pos.y + 1, d2.pos.z, 0);
-                            db.set(pl.xuid, {
-                                version: "team",
-                                pos: d2.pos,
-                            });
+                            db.set(pl.xuid, { version: "team", pos: d2.pos });
                             pl.tell(`与${pl1.realName}组队成功`);
                         }
                     );
@@ -127,11 +124,10 @@ function randomInt(min, max) {
 function returnPos(isX) {
     let pos = randomInt(-65536, 65535);
     for (const key of db.listKey()) {
-        const d = db.get(key);
+        const dt = db.get(key);
         if (
-            d.version == "team" ||
-            (isX ? d.pos.x : d.pos.z) < pos - islandRadius ||
-            pos + islandRadius < (isX ? d.pos.x : d.pos.z)
+            dt.version == "team" ||
+            Math.abs((isX ? dt.pos.x : dt.pos.z) - pos) < islandRadius
         )
             continue;
         pos = returnPos(isX);
