@@ -10,15 +10,13 @@ const motd = config.init("motd", [
 config.close();
 let index = 0;
 setInterval(() => {
-    mc.setMotd(
-        `${
-            ll.hasExported("playersCount", "get")
-                ? motd[index].replace(
-                      /%playerscount%/g,
-                      ll.import("playersCount", "get")()
-                  )
-                : motd[index]
-        }§r`
-    );
+    mc.setMotd(`${process(motd[index])}§r`);
     index = index == motd.length - 1 ? 0 : index + 1;
 }, interval * 1000);
+function process(str) {
+    if (ll.hasExported("AllPlayers", "Get"))
+        str = str.replace(/%AllPlayers%/g, ll.import("AllPlayers", "Get")());
+    if (ll.hasExported("MostPlayers", "Get"))
+        str = str.replace(/%MostPlayers%/g, ll.import("MostPlayers", "Get")());
+    return str;
+}
