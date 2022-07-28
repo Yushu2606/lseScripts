@@ -22,7 +22,7 @@ mc.listen("onJoin", (pl) => {
                         `欢迎${pl.realName}加入了我们！`
                     );
                 }
-                if (server) ll.import("BlockIsland", "sendInit")();
+                if (server) ll.import("BlockIsland", "sendInit")(pl.xuid);
             } else pl.kick("§l§4未同意用户协议，请勿使用本服提供的任何服务！");
         }
     );
