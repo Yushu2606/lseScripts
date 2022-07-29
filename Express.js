@@ -72,7 +72,6 @@ function main(pl) {
                 );
                 continue;
             }
-            pl.reduceLevel(reduce);
             if (item.count == args[index]) item.setNull();
             else
                 item.setNbt(
@@ -83,6 +82,7 @@ function main(pl) {
         }
         if (sendItems.length < 1) return;
         pl.refreshItems();
+        pl.reduceLevel(reduce);
         pl.tell(`已向${pl1.realName}发送了以下物品（花费${reduce}级经验）：`);
         pl1.tell(`${pl.realName}向您发送了以下物品：`);
         for (const item of sendItems) {

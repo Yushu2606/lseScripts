@@ -125,7 +125,7 @@ function returnPos(isX) {
         const dt = db.get(key);
         if (
             dt.version == "team" ||
-            Math.abs((isX ? dt.pos.x : dt.pos.z) - pos) < islandRadius
+            Math.abs((isX ? dt.pos.x : dt.pos.z) - pos) < 512
         )
             continue;
         pos = returnPos(isX);

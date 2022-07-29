@@ -2,8 +2,8 @@
 ll.registerPlugin("Menu", "菜单", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins\\Menu\\config.json");
-const itemType = config.init("itemType", { "minecraft:clock": "main" });
-const commands = config.init("commands", { main: "menu" });
+const itemType = config.init("itemType", {});
+const commands = config.init("commands", {});
 config.close();
 mc.listen("onUseItem", (pl, it) => {
     if (it.type in itemType) menu(pl, itemType[it.type]);
