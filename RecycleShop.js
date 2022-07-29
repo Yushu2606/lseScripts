@@ -4,6 +4,37 @@ ll.registerPlugin("RecycleShop", "回收商店", [1, 0, 0]);
 const config = new JsonConfigFile("plugins\\RecycleShop\\config.json");
 const command = config.init("command", "recycleshop");
 const serviceCharge = config.init("serviceCharge", 0.02);
+const currencyType = config.init("currencyType", "llmoney");
+const currencyName = config.init("currencyName", "元");
+const eco = (() => {
+    switch (currencyType) {
+        case "llmoney":
+            return {
+                add: (pl, m) => money.add(pl.xuid, m),
+                reduce: (pl, m) => money.reduce(pl.xuid, m),
+                get: (pl) => money.get(pl.xuid),
+                name: currencyName,
+            };
+        case "scoreboard":
+            const scoreboard = config.init("scoreboard", "money");
+            return {
+                add: (pl, money) => pl.addScore(scoreboard, money),
+                reduce: (pl, money) => pl.reduceScore(scoreboard, money),
+                get: (pl) => pl.getScore(scoreboard),
+                name: currencyName,
+            };
+        case "exp":
+            return {
+                add: (pl, money) => pl.addExperience(money),
+                reduce: (pl, money, isLv) =>
+                    isLv ? pl.reduceLevel(money) : pl.reduceExperience(money),
+                get: (pl) => pl.getTotalExperience(),
+                name: "经验值",
+            };
+        default:
+            throw "配置项异常！";
+    }
+})();
 config.close();
 const db = new JsonConfigFile("plugins\\RecycleShop\\data.json");
 const recycle = db.init("recycle", []);
@@ -63,7 +94,7 @@ function confirm(pl, itemData, count) {
             else item.setNull();
         }
         const add = Math.round(args[3] * itemData.price * (1 - serviceCharge));
-        pl.addExperience(add);
+        eco.addExperience(pl, add);
         pl.refreshItems();
         pl.tell(
             `物品${itemData.name} * ${args[3]}回收成功（获得${add}经验值）`
