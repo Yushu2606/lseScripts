@@ -94,7 +94,7 @@ function confirm(pl, itemData, count) {
             else item.setNull();
         }
         const add = Math.round(args[3] * itemData.price * (1 - serviceCharge));
-        eco.addExperience(pl, add);
+        eco.add(pl, add);
         pl.refreshItems();
         pl.tell(
             `物品${itemData.name} * ${args[3]}回收成功（获得${add}经验值）`
