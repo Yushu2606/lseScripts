@@ -52,7 +52,10 @@ function main(pl) {
     const fm = mc.newSimpleForm();
     fm.setTitle("回收商店");
     for (const item of recycle)
-        fm.addButton(`${item.name}\n${item.price}经验值/个`, item.icon);
+        fm.addButton(
+            `${item.name}\n${item.price}${currencyName}/个`,
+            item.icon
+        );
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return;
         const it = recycle[arg];
@@ -97,7 +100,7 @@ function confirm(pl, itemData, count) {
         eco.add(pl, add);
         pl.refreshItems();
         pl.tell(
-            `物品${itemData.name} * ${args[3]}回收成功（获得${add}经验值）`
+            `物品${itemData.name} * ${args[3]}回收成功（获得${add}${currencyName}）`
         );
         main(pl);
     });
