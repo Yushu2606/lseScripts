@@ -350,7 +350,7 @@ function itemBuy(pl, owner, item) {
             return pl.tell(`§c${item.name}§r * ${num}购买失败：余额不足`);
         const newItem = mc.newItem(itemNBT.setByte("Count", num));
         if (!pl.getInventory().hasRoomFor(newItem))
-            return pl.tell(`§c${item.name}§r * ${num}购买失败：背包已满`);
+            return pl.tell(`§c${item.name}§r * ${num}购买失败：空间不足`);
         const history = {
             time: system.getTimeStr(),
             buyer: pl.xuid,
@@ -480,7 +480,7 @@ function itemManagement(pl, arg) {
         if (args[2] != count) {
             const it = mc.newItem(itemNBT.setByte("Count", count - args[2]));
             if (!pl.getInventory().hasRoomFor(it)) {
-                pl.tell(`§c物品${args[0]}§r * ${args[2]}修改失败：背包已满`);
+                pl.tell(`§c物品${args[0]}§r * ${args[2]}修改失败：空间不足`);
                 return shopItem(pl);
             }
             if (wbd) delete shop.items[item.guid];

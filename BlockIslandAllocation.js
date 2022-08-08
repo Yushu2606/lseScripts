@@ -1,7 +1,7 @@
 "use strict";
 ll.registerPlugin("BlockIslandAllocation", "岛屿分配系统", [1, 0, 0]);
 
-const db = new KVDatabase("plugins\\BlockIsland\\data");
+const db = new KVDatabase("plugins\\BlockIslandAllocation\\data");
 if (db.listKey().indexOf("spawn") < 0)
     db.set("spawn", { version: "spawn", pos: { x: 0, y: -64, z: 0 } });
 mc.listen("onPlaceBlock", (pl, bl) => {
@@ -125,7 +125,7 @@ function returnPos(isX) {
         const dt = db.get(key);
         if (
             dt.version == "team" ||
-            Math.abs((isX ? dt.pos.x : dt.pos.z) - pos) < 512
+            Math.abs((isX ? dt.pos.x : dt.pos.z) - pos) > 512
         )
             continue;
         pos = returnPos(isX);

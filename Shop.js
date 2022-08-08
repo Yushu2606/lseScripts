@@ -1,8 +1,8 @@
 "use strict";
-ll.registerPlugin("RecycleShop", "回收商店", [1, 0, 0]);
+ll.registerPlugin("Shop", "商店", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins\\RecycleShop\\config.json");
-const command = config.init("command", "recycleshop");
+const config = new JsonConfigFile("plugins\\Shop\\config.json");
+const command = config.init("command", "shop");
 const serviceCharge = config.init("serviceCharge", 0.02);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
@@ -36,11 +36,12 @@ const eco = (() => {
     }
 })();
 config.close();
-const db = new JsonConfigFile("plugins\\RecycleShop\\data.json");
+const db = new JsonConfigFile("plugins\\Shop\\data.json");
+const sell = db.init("sell", []);
 const recycle = db.init("recycle", []);
 db.close();
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开回收商店。", PermType.Any);
+    const cmd = mc.newCommand(command, "打开商店菜单。", PermType.Any);
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (ori.player) return main(ori.player);
@@ -49,6 +50,69 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 function main(pl) {
+    let fm = mc.newSimpleForm();
+    fm.setTitle("商店菜单");
+    fm.addButton("购买");
+    fm.addButton("回收");
+    pl.sendForm(fm, (pl, e) => {
+        switch (e) {
+            case 0:
+                return sellShop(pl);
+            case 1:
+                return recycleShop(pl);
+        }
+    });
+}
+function sellShop(pl) {
+    let fm = mc.newSimpleForm();
+    fm.setTitle(`购买商店`);
+    for (const item of sell)
+        fm.addButton(
+            `${item.name}\n${item.price}${currencyName}/个`,
+            item.icon
+        );
+    pl.sendForm(fm, (pl, arg) => {
+        if (arg == null) return main(pl);
+        const item = sell[arg];
+        if (Math.round(eco.get(pl) / item.price) < 1) {
+            pl.tell("购买失败：余额不足");
+            return sellShop(pl);
+        }
+        sellConfirm(pl, item);
+    });
+}
+function sellConfirm(pl, itemData) {
+    let fm = mc.newCustomForm();
+    fm.setTitle("购买确认");
+    fm.addLabel(`物品名：${itemData.name}`);
+    fm.addLabel(`价格：${itemData.price}/个`);
+    fm.addSlider(
+        "选择购买数量",
+        Math.round(1 / itemData.price),
+        Math.round(eco.get(pl) / itemData.price)
+    );
+    pl.sendForm(fm, (pl, args) => {
+        if (!args) return sellShop(pl);
+        const cost = itemData.price * args[3];
+        if (eco.get(pl) - cost < 1) {
+            pl.tell(`物品${itemData.name} * ${args[3]}购买失败：余额不足`);
+            return sellShop(pl);
+        }
+        const item = mc.newItem(itemData.id, Number(args[3]));
+        if (!pl.getInventory().hasRoomFor(item)) {
+            pl.tell(`物品${itemData.name} * ${args[3]}购买失败：空间不足`);
+            return sellShop(pl);
+        }
+        eco.reduce(pl, Math.round(cost));
+        pl.giveItem(item);
+        pl.refreshItems();
+        pl.tell(
+            `物品${itemData.name} * ${args[3]}购买成功（花费${cost}${currencyName}）`
+        );
+        sellShop(pl);
+    });
+}
+function recycleShop(pl) {
     const fm = mc.newSimpleForm();
     fm.setTitle("回收商店");
     for (const item of recycle)
@@ -57,19 +121,19 @@ function main(pl) {
             item.icon
         );
     pl.sendForm(fm, (pl, arg) => {
-        if (arg == null) return;
+        if (arg == null) return main(pl);
         const it = recycle[arg];
         let count = 0;
         for (const item of pl.getInventory().getAllItems())
             if (item.type == it.id) count += item.count;
         if (count < 1) {
             pl.tell(`§c物品${it.name}回收失败：数量不足`);
-            return main(pl);
+            return recycleShop(pl);
         }
-        confirm(pl, it, count);
+        recycleConfirm(pl, it, count);
     });
 }
-function confirm(pl, itemData, count) {
+function recycleConfirm(pl, itemData, count) {
     const fm = mc.newCustomForm();
     fm.setTitle("回收确认");
     fm.addLabel(`物品名：${itemData.name}`);
@@ -77,7 +141,7 @@ function confirm(pl, itemData, count) {
     fm.addLabel(`当前税率：${serviceCharge * 100}％`);
     fm.addSlider("选择回收数量", 1, count);
     pl.sendForm(fm, (pl, args) => {
-        if (!args) return main(pl);
+        if (!args) return recycleShop(pl);
         const its = pl.getInventory().getAllItems();
         let count = 0;
         for (const item of its) {
@@ -88,7 +152,7 @@ function confirm(pl, itemData, count) {
             pl.tell(
                 `§c物品${itemData.name}回收失败：数量不足（只有${count}个）`
             );
-            return main(pl);
+            return recycleShop(pl);
         }
         let count2 = args[3];
         for (const item of its) {
@@ -104,6 +168,6 @@ function confirm(pl, itemData, count) {
         pl.tell(
             `物品${itemData.name} * ${args[3]}回收成功（获得${add}${currencyName}）`
         );
-        main(pl);
+        recycleShop(pl);
     });
 }
