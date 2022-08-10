@@ -20,7 +20,7 @@ setInterval(() => {
     realTPMS = tickPlus / ticks.length;
     ticks = [];
     const tps = 1000 / realTPMS;
-    if (Math.round(tps) < 20) log(`当前TPS：${tps}`);
+    if (Math.round(tps) < 16) log(`当前TPS：${tps}`);
     for (const pl of mc.getOnlinePlayers()) {
         pl.removeSidebar();
         pl.removeBossBar(0);

@@ -153,11 +153,11 @@ function shopManagement(pl) {
 function itemList(pl, owner) {
     const fm = mc.newSimpleForm();
     const shop = db.get(owner);
-    const itemcount = Object.keys(shop.items).length;
+    const items = Object.values(shop.items);
     fm.setTitle(shop.name);
-    fm.setContent(`${shop.intro}§r\n货架上共有${itemcount}个物品`);
-    if (itemcount > 0)
-        for (const item of Object.values(shop.items)) {
+    fm.setContent(`${shop.intro}§r\n货架上共有${items.length}个物品`);
+    if (items.length > 0)
+        for (const item of items) {
             const itemNBT = NBT.parseSNBT(item.snbt);
             fm.addButton(
                 `${item.name}§r（${itemNBT.getTag("Name")}） * ${itemNBT.getTag(
@@ -167,7 +167,29 @@ function itemList(pl, owner) {
         }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return main(pl);
-        itemBuy(pl, owner, Object.values(db.get(owner).items)[arg]);
+        const item = Object.values(db.get(owner).items)[arg];
+        if (item.guid != items[arg].guid) {
+            pl.tell(`§c${items[arg].name}§r购买失败：已被买走`);
+            return itemList(pl, owner);
+        }
+        const canBuyMin = Math.round(eco.get(pl) / item.price);
+        if (canBuyMin < 1) {
+            pl.tell(`§c${item.name}§r购买失败：余额不足`);
+            return itemList(pl, owner);
+        }
+        if (
+            !pl
+                .getInventory()
+                .hasRoomFor(
+                    mc.newItem(
+                        NBT.parseSNBT(item.snbt).setByte("Count", canBuyMin)
+                    )
+                )
+        ) {
+            pl.tell(`§c${item.name}§r * ${num}购买失败：空间不足`);
+            return itemList(pl, owner);
+        }
+        itemBuy(pl, owner, item);
     });
 }
 function shopInfo(pl) {
@@ -202,7 +224,23 @@ function shopItem(pl) {
         if (arg == null) return shopManagement(pl);
         switch (arg) {
             case 0:
-                return itemUpload(pl);
+                const itemsmsg = [];
+                const items = [];
+                const inventoryItems = pl.getInventory().getAllItems();
+                for (const item of inventoryItems) {
+                    if (item.isNull()) continue;
+                    itemsmsg.push(
+                        `[${inventoryItems.indexOf(item)}] ${item.name}§r（${
+                            item.type
+                        }:${item.aux}）* ${item.count}`
+                    );
+                    items.push(item);
+                }
+                if (itemsmsg.length < 1) {
+                    pl.tell("§c物品上架失败：背包为空");
+                    return shopItem(pl);
+                }
+                return itemUpload(pl, itemsmsg, items);
             default:
                 itemManagement(pl, arg);
         }
@@ -232,7 +270,12 @@ function itemBuy(pl, owner, item) {
     fm.addLabel(`NBT：${item.snbt}`);
     fm.addLabel(`价格：${item.price}${eco.name}/个`);
     const count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
-    if (count > 1) fm.addSlider("选择购买数量", 1, count);
+    if (count > 1)
+        fm.addSlider(
+            "选择购买数量",
+            Math.round(1 / item.price),
+            Math.round(eco.get(pl) / item.price)
+        );
     else fm.addLabel("将购买1个");
     const itemNBT = NBT.parseSNBT(item.snbt);
     const tag = itemNBT.getTag("tag");
@@ -381,24 +424,8 @@ function itemBuy(pl, owner, item) {
         );
     });
 }
-function itemUpload(pl) {
-    const itemsmsg = [];
-    const items = [];
-    const inventoryItems = pl.getInventory().getAllItems();
-    for (const item of inventoryItems) {
-        if (item.isNull()) continue;
-        itemsmsg.push(
-            `[${inventoryItems.indexOf(item)}] ${item.name}§r（${item.type}:${
-                item.aux
-            }）* ${item.count}`
-        );
-        items.push(item);
-    }
+function itemUpload(pl, itemsmsg, items) {
     const fm = mc.newCustomForm();
-    if (itemsmsg.length < 1) {
-        pl.tell("§c物品上架失败：背包为空");
-        return shopItem(pl);
-    }
     fm.setTitle("上架物品");
     fm.addDropdown("物品", itemsmsg);
     fm.addInput("物品名称", "字符串（可空）");

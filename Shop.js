@@ -68,7 +68,7 @@ function sellShop(pl) {
     fm.setTitle(`购买商店`);
     for (const item of sell)
         fm.addButton(
-            `${item.name}\n${item.price}${currencyName}/个`,
+            `${item.name}\n${item.price}${eco.name}/个`,
             item.icon
         );
     pl.sendForm(fm, (pl, arg) => {
@@ -107,7 +107,7 @@ function sellConfirm(pl, itemData) {
         pl.giveItem(item);
         pl.refreshItems();
         pl.tell(
-            `物品${itemData.name} * ${args[3]}购买成功（花费${cost}${currencyName}）`
+            `物品${itemData.name} * ${args[3]}购买成功（花费${cost}${eco.name}）`
         );
         sellShop(pl);
     });
@@ -117,7 +117,7 @@ function recycleShop(pl) {
     fm.setTitle("回收商店");
     for (const item of recycle)
         fm.addButton(
-            `${item.name}\n${item.price}${currencyName}/个`,
+            `${item.name}\n${item.price}${eco.name}/个`,
             item.icon
         );
     pl.sendForm(fm, (pl, arg) => {
@@ -166,7 +166,7 @@ function recycleConfirm(pl, itemData, count) {
         const add = Math.round(args[3] * itemData.price * (1 - serviceCharge));
         eco.add(pl, add);
         pl.tell(
-            `物品${itemData.name} * ${args[3]}回收成功（获得${add}${currencyName}）`
+            `物品${itemData.name} * ${args[3]}回收成功（获得${add}${eco.name}）`
         );
         recycleShop(pl);
     });
