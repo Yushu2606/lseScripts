@@ -93,21 +93,21 @@ function sellConfirm(pl, itemData) {
     );
     pl.sendForm(fm, (pl, args) => {
         if (!args) return sellShop(pl);
-        const cost = itemData.price * args[3];
+        const cost = itemData.price * args[2];
         if (eco.get(pl) - cost < 1) {
-            pl.tell(`物品${itemData.name} * ${args[3]}购买失败：余额不足`);
+            pl.tell(`物品${itemData.name} * ${args[2]}购买失败：余额不足`);
             return sellShop(pl);
         }
-        const item = mc.newItem(itemData.id, Number(args[3]));
+        const item = mc.newItem(itemData.id, Number(args[2]));
         if (!pl.getInventory().hasRoomFor(item)) {
-            pl.tell(`物品${itemData.name} * ${args[3]}购买失败：空间不足`);
+            pl.tell(`物品${itemData.name} * ${args[2]}购买失败：空间不足`);
             return sellShop(pl);
         }
         eco.reduce(pl, Math.round(cost));
         pl.giveItem(item);
         pl.refreshItems();
         pl.tell(
-            `物品${itemData.name} * ${args[3]}购买成功（花费${cost}${eco.name}）`
+            `物品${itemData.name} * ${args[2]}购买成功（花费${cost}${eco.name}）`
         );
         sellShop(pl);
     });
@@ -154,12 +154,12 @@ function recycleConfirm(pl, itemData, count) {
             );
             return recycleShop(pl);
         }
-        let count2 = args[3];
+        let buyCount = args[3];
         for (const item of its) {
-            if (count2 < 1 || item.type != itemData.id) continue;
-            count2 -= item.count;
-            if (count2 < 0)
-                item.setNbt(item.getNbt().setByte("Count", Math.abs(count2)));
+            if (buyCount < 1 || item.type != itemData.id) continue;
+            buyCount -= item.count;
+            if (buyCount < 0)
+                item.setNbt(item.getNbt().setByte("Count", Math.abs(buyCount)));
             else item.setNull();
             pl.refreshItems();
         }
