@@ -408,7 +408,6 @@ function itemBuy(pl, owner, item) {
                 .toSNBT();
         eco.reduce(pl, cost);
         pl.giveItem(newItem);
-        pl.refreshItems();
         const ownerpl = mc.getPlayer(owner);
         if (ownerpl) {
             const get = Math.round(cost * (1 - serviceCharge));
@@ -516,7 +515,6 @@ function itemManagement(pl, arg) {
                     .setByte("Count", args[2])
                     .toSNBT();
             pl.giveItem(it);
-            pl.refreshItems();
         }
         db.set(pl.xuid, shop);
         pl.tell(

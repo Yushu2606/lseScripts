@@ -105,7 +105,6 @@ function sellConfirm(pl, itemData) {
         }
         eco.reduce(pl, Math.round(cost));
         pl.giveItem(item);
-        pl.refreshItems();
         pl.tell(
             `物品${itemData.name} * ${args[2]}购买成功（花费${cost}${eco.name}）`
         );

@@ -77,11 +77,11 @@ function main(pl) {
                 item.setNbt(
                     itemNbt.setByte("Count", Number(item.count - args[index]))
                 );
+            pl.refreshItems();
             pl1.giveItem(newitem);
             sendItems.push({ name: item.name, count: args[index] });
         }
         if (sendItems.length < 1) return;
-        pl.refreshItems();
         pl.reduceLevel(reduce);
         pl.tell(`已向${pl1.realName}发送了以下物品（花费${reduce}级经验）：`);
         pl1.tell(`${pl.realName}向您发送了以下物品：`);
