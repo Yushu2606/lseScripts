@@ -186,7 +186,7 @@ function itemList(pl, owner) {
                     )
                 )
         ) {
-            pl.tell(`§c${item.name}§r * ${num}购买失败：空间不足`);
+            pl.tell(`§c${item.name}§r购买失败：空间不足`);
             return itemList(pl, owner);
         }
         itemBuy(pl, owner, item);
