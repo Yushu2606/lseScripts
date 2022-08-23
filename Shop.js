@@ -67,10 +67,7 @@ function sellShop(pl) {
     let fm = mc.newSimpleForm();
     fm.setTitle(`购买商店`);
     for (const item of sell)
-        fm.addButton(
-            `${item.name}\n${item.price}${eco.name}/个`,
-            item.icon
-        );
+        fm.addButton(`${item.name}\n${item.price}${eco.name}/个`, item.icon);
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return main(pl);
         const item = sell[arg];
@@ -84,6 +81,7 @@ function sellShop(pl) {
 function sellConfirm(pl, itemData) {
     let fm = mc.newCustomForm();
     fm.setTitle("购买确认");
+        const item = mc.newItem(itemData.id, Number(args[2]));
     fm.addLabel(`物品名：${itemData.name}`);
     fm.addLabel(`价格：${itemData.price}/个`);
     fm.addSlider(
@@ -98,7 +96,7 @@ function sellConfirm(pl, itemData) {
             pl.tell(`物品${itemData.name} * ${args[2]}购买失败：余额不足`);
             return sellShop(pl);
         }
-        const item = mc.newItem(itemData.id, Number(args[2]));
+        item.setAux(itemData.dataValues);
         if (!pl.getInventory().hasRoomFor(item)) {
             pl.tell(`物品${itemData.name} * ${args[2]}购买失败：空间不足`);
             return sellShop(pl);
@@ -115,16 +113,15 @@ function recycleShop(pl) {
     const fm = mc.newSimpleForm();
     fm.setTitle("回收商店");
     for (const item of recycle)
-        fm.addButton(
-            `${item.name}\n${item.price}${eco.name}/个`,
-            item.icon
-        );
+        fm.addButton(`${item.name}\n${item.price}${eco.name}/个`, item.icon);
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return main(pl);
         const it = recycle[arg];
         let count = 0;
-        for (const item of pl.getInventory().getAllItems())
-            if (item.type == it.id) count += item.count;
+        for (const item of pl.getInventory().getAllItems()) {
+            if (item.type == it.id && item.aux == itemData.dataValues) continue;
+            count += item.count;
+        }
         if (count < 1) {
             pl.tell(`§c物品${it.name}回收失败：数量不足`);
             return recycleShop(pl);
@@ -144,7 +141,8 @@ function recycleConfirm(pl, itemData, count) {
         const its = pl.getInventory().getAllItems();
         let count = 0;
         for (const item of its) {
-            if (item.type != itemData.id) continue;
+            if (item.type != itemData.id || item.aux != itemData.dataValues)
+                continue;
             count += item.count;
         }
         if (count < args[3]) {
@@ -155,7 +153,12 @@ function recycleConfirm(pl, itemData, count) {
         }
         let buyCount = args[3];
         for (const item of its) {
-            if (buyCount < 1 || item.type != itemData.id) continue;
+            if (
+                buyCount < 1 ||
+                item.type != itemData.id ||
+                item.aux != itemData.dataValues
+            )
+                continue;
             buyCount -= item.count;
             if (buyCount < 0)
                 item.setNbt(item.getNbt().setByte("Count", Math.abs(buyCount)));

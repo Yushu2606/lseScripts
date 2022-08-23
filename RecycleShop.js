@@ -52,16 +52,15 @@ function main(pl) {
     const fm = mc.newSimpleForm();
     fm.setTitle("回收商店");
     for (const item of recycle)
-        fm.addButton(
-            `${item.name}\n${item.price}${currencyName}/个`,
-            item.icon
-        );
+        fm.addButton(`${item.name}\n${item.price}${eco.name}/个`, item.icon);
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return;
         const it = recycle[arg];
         let count = 0;
-        for (const item of pl.getInventory().getAllItems())
-            if (item.type == it.id) count += item.count;
+        for (const item of pl.getInventory().getAllItems()) {
+            if (item.type == it.id && item.aux == itemData.dataValues) continue;
+            count += item.count;
+        }
         if (count < 1) {
             pl.tell(`§c物品${it.name}回收失败：数量不足`);
             return main(pl);
@@ -81,7 +80,8 @@ function confirm(pl, itemData, count) {
         const its = pl.getInventory().getAllItems();
         let count = 0;
         for (const item of its) {
-            if (item.type != itemData.id) continue;
+            if (item.type != itemData.id || item.aux != itemData.dataValues)
+                continue;
             count += item.count;
         }
         if (count < args[3]) {
@@ -90,19 +90,24 @@ function confirm(pl, itemData, count) {
             );
             return main(pl);
         }
-        let count2 = args[3];
+        let buyCount = args[3];
         for (const item of its) {
-            if (count2 < 1 || item.type != itemData.id) continue;
-            count2 -= item.count;
-            if (count2 < 0)
-                item.setNbt(item.getNbt().setByte("Count", Math.abs(count2)));
+            if (
+                buyCount < 1 ||
+                item.type != itemData.id ||
+                item.aux != itemData.dataValues
+            )
+                continue;
+            buyCount -= item.count;
+            if (buyCount < 0)
+                item.setNbt(item.getNbt().setByte("Count", Math.abs(buyCount)));
             else item.setNull();
             pl.refreshItems();
         }
         const add = Math.round(args[3] * itemData.price * (1 - serviceCharge));
         eco.add(pl, add);
         pl.tell(
-            `物品${itemData.name} * ${args[3]}回收成功（获得${add}${currencyName}）`
+            `物品${itemData.name} * ${args[3]}回收成功（获得${add}${eco.name}）`
         );
         main(pl);
     });
