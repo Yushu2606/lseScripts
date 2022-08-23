@@ -81,7 +81,6 @@ function sellShop(pl) {
 function sellConfirm(pl, itemData) {
     let fm = mc.newCustomForm();
     fm.setTitle("购买确认");
-        const item = mc.newItem(itemData.id, Number(args[2]));
     fm.addLabel(`物品名：${itemData.name}`);
     fm.addLabel(`价格：${itemData.price}/个`);
     fm.addSlider(
@@ -97,6 +96,7 @@ function sellConfirm(pl, itemData) {
             return sellShop(pl);
         }
         item.setAux(itemData.dataValues);
+        const item = mc.newItem(itemData.id, Number(args[2]));
         if (!pl.getInventory().hasRoomFor(item)) {
             pl.tell(`物品${itemData.name} * ${args[2]}购买失败：空间不足`);
             return sellShop(pl);
