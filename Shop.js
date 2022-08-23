@@ -95,8 +95,8 @@ function sellConfirm(pl, itemData) {
             pl.tell(`物品${itemData.name} * ${args[2]}购买失败：余额不足`);
             return sellShop(pl);
         }
-        item.setAux(itemData.dataValues);
         const item = mc.newItem(itemData.id, Number(args[2]));
+        item.setAux(itemData.dataValues);
         if (!pl.getInventory().hasRoomFor(item)) {
             pl.tell(`物品${itemData.name} * ${args[2]}购买失败：空间不足`);
             return sellShop(pl);
