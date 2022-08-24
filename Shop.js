@@ -97,6 +97,27 @@ function sellConfirm(pl, itemData) {
         }
         const item = mc.newItem(itemData.id, Number(args[2]));
         item.setAux(itemData.dataValues);
+        const ench = new NbtList();
+        for (const enchantment in itemData.enchantments) {
+            enchantment.addTag(
+                new NbtCompound({
+                    id: new NbtInt(enchantment.id),
+                    lvl: new NbtInt(enchantment.lvl),
+                })
+            );
+        }
+        const nbt = item.getNbt();
+        const tag = nbt.getTag("tag");
+        item.setNbt(
+            nbt.setTag(
+                "tag",
+                tag
+                    ? tag.setTag("ench", ench)
+                    : new NbtCompound({
+                          ench: ench,
+                      })
+            )
+        );
         if (!pl.getInventory().hasRoomFor(item)) {
             pl.tell(`物品${itemData.name} * ${args[2]}购买失败：空间不足`);
             return sellShop(pl);
@@ -119,7 +140,7 @@ function recycleShop(pl) {
         const it = recycle[arg];
         let count = 0;
         for (const item of pl.getInventory().getAllItems()) {
-            if (item.type == it.id && item.aux == itemData.dataValues) continue;
+            if (item.type != it.id || item.aux != it.dataValues) continue;
             count += item.count;
         }
         if (count < 1) {
@@ -153,14 +174,10 @@ function recycleConfirm(pl, itemData, count) {
         }
         let buyCount = args[3];
         for (const item of its) {
-            if (
-                buyCount < 1 ||
-                item.type != itemData.id ||
-                item.aux != itemData.dataValues
-            )
+            if (buyCount < 1) break;
+            if (item.type != itemData.id || item.aux != itemData.dataValues)
                 continue;
-            buyCount -= item.count;
-            if (buyCount < 0)
+            if ((buyCount -= item.count) < 0)
                 item.setNbt(item.getNbt().setByte("Count", Math.abs(buyCount)));
             else item.setNull();
             pl.refreshItems();
