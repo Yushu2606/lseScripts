@@ -96,7 +96,7 @@ function sellConfirm(pl, itemData) {
             return sellShop(pl);
         }
         const item = mc.newItem(itemData.id, Number(args[2]));
-        item.setAux(itemData.dataValues);
+        if (itemData.dataValues) item.setAux(itemData.dataValues);
         const ench = new NbtList();
         for (const enchantment in itemData.enchantments) {
             enchantment.addTag(
@@ -140,7 +140,11 @@ function recycleShop(pl) {
         const it = recycle[arg];
         let count = 0;
         for (const item of pl.getInventory().getAllItems()) {
-            if (item.type != it.id || item.aux != it.dataValues) continue;
+            if (
+                item.type != it.id ||
+                (it.dataValues && item.aux != it.dataValues)
+            )
+                continue;
             count += item.count;
         }
         if (count < 1) {
@@ -162,7 +166,10 @@ function recycleConfirm(pl, itemData, count) {
         const its = pl.getInventory().getAllItems();
         let count = 0;
         for (const item of its) {
-            if (item.type != itemData.id || item.aux != itemData.dataValues)
+            if (
+                item.type != itemData.id ||
+                (itemData.dataValues && item.aux != itemData.dataValues)
+            )
                 continue;
             count += item.count;
         }
@@ -175,7 +182,10 @@ function recycleConfirm(pl, itemData, count) {
         let buyCount = args[3];
         for (const item of its) {
             if (buyCount < 1) break;
-            if (item.type != itemData.id || item.aux != itemData.dataValues)
+            if (
+                item.type != itemData.id ||
+                (itemData.dataValues && item.aux != itemData.dataValues)
+            )
                 continue;
             if ((buyCount -= item.count) < 0)
                 item.setNbt(item.getNbt().setByte("Count", Math.abs(buyCount)));
