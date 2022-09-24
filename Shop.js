@@ -99,10 +99,10 @@ function sellConfirm(pl, itemData) {
         if (itemData.dataValues) item.setAux(itemData.dataValues);
         const ench = new NbtList();
         for (const enchantment in itemData.enchantments) {
-            enchantment.addTag(
+            ench.addTag(
                 new NbtCompound({
-                    id: new NbtInt(enchantment.id),
-                    lvl: new NbtInt(enchantment.lvl),
+                    id: new NbtInt(Number(enchantment.id)),
+                    lvl: new NbtInt(Number(enchantment.lvl)),
                 })
             );
         }
