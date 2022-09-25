@@ -488,6 +488,10 @@ function itemManagement(pl, guid) {
     pl.sendForm(fm, (pl, args) => {
         if (!args) return shopItem(pl);
         const item = db.get(pl.xuid).items[guid];
+        if (!item) {
+            pl.tell(`§c物品${args[0]}§r * ${args[2]}修改失败：已被买走`);
+            return shopItem(pl);
+        }
         if (isNaN(args[1] ?? item.price)) {
             pl.tell(
                 `§c物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非数字）`
@@ -498,10 +502,6 @@ function itemManagement(pl, guid) {
             pl.tell(
                 `§c物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非正数）`
             );
-            return shopItem(pl);
-        }
-        if (!item) {
-            pl.tell(`§c物品${args[0]}§r * ${args[2]}修改失败：已被买走`);
             return shopItem(pl);
         }
         const shop = db.get(pl.xuid);
