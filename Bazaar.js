@@ -156,19 +156,22 @@ function itemList(pl, owner) {
     const items = Object.values(shop.items);
     fm.setTitle(shop.name);
     fm.setContent(`${shop.intro}§r\n货架上共有${items.length}个物品`);
+    const guids = [];
     if (items.length > 0)
         for (const item of items) {
+            if (!item.snbt) continue;
             const itemNBT = NBT.parseSNBT(item.snbt);
             fm.addButton(
                 `${item.name}§r（${itemNBT.getTag("Name")}） * ${itemNBT.getTag(
                     "Count"
                 )}\n价格：${item.price}${eco.name}/个`
             );
+            guids.push(item.guid);
         }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return main(pl);
-        const item = Object.values(db.get(owner).items)[arg];
-        if (item.guid != items[arg].guid) {
+        const item = db.get(owner).items[guids[arg]];
+        if (!item.guid) {
             pl.tell(`§c${items[arg].name}§r购买失败：已被买走`);
             return itemList(pl, owner);
         }
@@ -212,13 +215,16 @@ function shopItem(pl) {
     fm.addButton("上架物品");
     const shop = db.get(pl.xuid);
     fm.setTitle(shop.name);
+    const guids = [];
     for (const item of Object.values(shop.items)) {
+        if (!item.snbt) continue;
         const itemNBT = NBT.parseSNBT(item.snbt);
         fm.addButton(
             `${item.name}§r（${itemNBT.getTag("Name")}） * ${itemNBT.getTag(
                 "Count"
             )}\n价格：${item.price}${eco.name}/个`
         );
+        guids.push(item.guid);
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return shopManagement(pl);
@@ -242,7 +248,7 @@ function shopItem(pl) {
                 }
                 return itemUpload(pl, itemsmsg, items);
             default:
-                itemManagement(pl, arg);
+                itemManagement(pl, guids[arg]);
         }
     });
 }
@@ -467,9 +473,13 @@ function itemUpload(pl, itemsmsg, items) {
         shopItem(pl);
     });
 }
-function itemManagement(pl, arg) {
+function itemManagement(pl, guid) {
     const fm = mc.newCustomForm();
-    const item = Object.values(db.get(pl.xuid).items)[arg - 1];
+    const item = db.get(pl.xuid).items[guid];
+    if (!item) {
+        pl.tell("§c物品修改失败：已被买走");
+        return shopItem(pl);
+    }
     fm.setTitle(`编辑物品 - ${item.name}`);
     fm.addInput("物品名称", "字符串（可空）", item.name);
     fm.addInput("物品价格", "数字（可空）", item.price);
@@ -477,6 +487,7 @@ function itemManagement(pl, arg) {
     fm.addSlider("上架数量", 0, count, 1, count);
     pl.sendForm(fm, (pl, args) => {
         if (!args) return shopItem(pl);
+        const item = db.get(pl.xuid).items[guid];
         if (isNaN(args[1] ?? item.price)) {
             pl.tell(
                 `§c物品${args[0]}§r * ${args[2]}修改失败：价格输入错误（非数字）`
