@@ -1,5 +1,5 @@
 "use strict";
-ll.registerPlugin("Bazaar", "物品集市", [1, 0, 0]);
+ll.registerPlugin("Bazaar", "物品集市", [1, 1, 9]);
 
 const config = new JsonConfigFile("plugins\\Bazaar\\config.json");
 const command = config.init("command", "bazaar");
@@ -69,7 +69,8 @@ function main(pl) {
     const fm = mc.newSimpleForm();
     fm.setTitle("物品集市");
     const list = [];
-    fm.addButton(db.get(pl.xuid) ? "店铺管理" : "创建店铺");
+    const ownShop = db.get(pl.xuid);
+    fm.addButton(ownShop ? "店铺管理" : "创建店铺");
     for (const owner of db.listKey()) {
         if (owner == pl.xuid) continue;
         const shop = db.get(owner);
@@ -77,6 +78,11 @@ function main(pl) {
         else list.push(owner);
         fm.addButton(`${shop.name}§r\n店主：${data.xuid2name(owner)}`);
     }
+    fm.setContent(
+        `共有${
+            list.length + (Object.keys(ownShop.items).length < 1 ? 0 : 1)
+        }个店铺在线`
+    );
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return;
         switch (arg) {
@@ -130,7 +136,7 @@ function shopManagement(pl) {
     const shop = db.get(pl.xuid);
     fm.setTitle("店铺管理");
     fm.setContent(
-        serviceCharge > 0 ? `\n当前税率：${serviceCharge * 100}％` : ""
+        serviceCharge > 0 ? `当前税率：${serviceCharge * 100}％` : ""
     );
     fm.addButton("信息设置");
     fm.addButton(`物品管理\n货架上共有${Object.keys(shop.items).length}个商品`);
@@ -248,7 +254,7 @@ function shopItemsManagement(pl) {
                 }
                 return itemUpload(pl, itemsmsg, items);
             default:
-                itemManagement(pl, guids[arg]);
+                itemManagement(pl, guids[arg - 1]);
         }
     });
 }
