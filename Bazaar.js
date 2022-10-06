@@ -80,7 +80,8 @@ function main(pl) {
     }
     fm.setContent(
         `共有${
-            list.length + (Object.keys(ownShop.items).length < 1 ? 0 : 1)
+            list.length +
+            (db.get(pl.xuid) && Object.keys(ownShop.items).length < 1 ? 0 : 1)
         }个店铺在线`
     );
     pl.sendForm(fm, (pl, arg) => {
