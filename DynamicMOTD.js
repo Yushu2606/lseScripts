@@ -15,7 +15,7 @@ setInterval(() => {
 }, interval * 1000);
 function process(str) {
     if (ll.hasExported("AllPlayers", "Get"))
-        str = str.replace(/%AllPlayers%/g, ll.import("AllPlayers", "Get")());
+        str = str.replace(/%AllPlayers%/g, data.getAllPlayerInfo().length);
     if (ll.hasExported("MostPlayers", "Get"))
         str = str.replace(/%MostPlayers%/g, ll.import("MostPlayers", "Get")());
     return str;

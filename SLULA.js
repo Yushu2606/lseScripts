@@ -32,4 +32,3 @@ mc.listen("onJoin", (pl) => {
         }
     );
 });
-ll.export(() => db.listKey().length, "AllPlayers", "Get");

@@ -123,7 +123,7 @@ function sellConfirm(pl, itemData) {
             return sellShop(pl);
         }
         eco.reduce(pl, Math.round(cost));
-        pl.giveItem(item);
+        pl.giveItem(item, Number(args[2]));
         pl.tell(
             `物品${itemData.name} * ${args[2]}购买成功（花费${cost}${eco.name}）`
         );
