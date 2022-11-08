@@ -68,25 +68,22 @@ function sellShop(pl, shop, shopLink) {
     fm.setTitle(`购买商店 - ${shopLink.length <= 0 ? "主商店" : shop.name}`);
     const items = shopLink.length <= 0 ? shop : shop.items;
     for (const item of items) {
-        switch (item.type) {
-            case "shop":
-                if (item.icon) {
-                    fm.addButton(item.name, item.icon);
-                    break;
-                }
-                fm.addButton(item.name);
-                break;
-            default:
-                if (item.icon) {
-                    fm.addButton(
-                        `${item.name}\n${item.price}${eco.name}/个`,
-                        item.icon
-                    );
-                    break;
-                }
-                fm.addButton(`${item.name}\n${item.price}${eco.name}/个`);
-                break;
+        if (item.items) {
+            if (item.icon) {
+                fm.addButton(item.name, item.icon);
+                continue;
+            }
+            fm.addButton(item.name);
+            continue;
         }
+        if (item.icon) {
+            fm.addButton(
+                `${item.name}\n${item.price}${eco.name}/个`,
+                item.icon
+            );
+            continue;
+        }
+        fm.addButton(`${item.name}\n${item.price}${eco.name}/个`);
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) {
@@ -96,19 +93,17 @@ function sellShop(pl, shop, shopLink) {
             return main(pl);
         }
         const item = items[arg];
-        switch (item.type) {
-            case "shop":
-                shopLink.push(shop);
-                return sellShop(pl, item, shopLink);
-            default:
-                const maxNum = eco.get(pl) / item.price;
-                if (maxNum <= 0) {
-                    pl.tell(`§c物品${item.name}购买失败：余额不足`);
-                    return sellShop(pl, shop, shopLink);
-                }
-                shopLink.push(shop);
-                return sellConfirm(pl, item, maxNum, shopLink);
+        if (item.items) {
+            shopLink.push(shop);
+            return sellShop(pl, item, shopLink);
         }
+        const maxNum = eco.get(pl) / item.price;
+        if (maxNum <= 0) {
+            pl.tell(`§c物品${item.name}购买失败：余额不足`);
+            return sellShop(pl, shop, shopLink);
+        }
+        shopLink.push(shop);
+        return sellConfirm(pl, item, maxNum, shopLink);
     });
 }
 function sellConfirm(pl, itemData, maxNum, shopLink) {
@@ -173,25 +168,22 @@ function recycleShop(pl, shop, shopLink) {
     fm.setTitle(`回收商店 - ${shopLink.length <= 0 ? "主商店" : shop.name}`);
     const items = shopLink.length <= 0 ? shop : shop.items;
     for (const item of items) {
-        switch (item.type) {
-            case "shop":
-                if (item.icon) {
-                    fm.addButton(item.name, item.icon);
-                    break;
-                }
-                fm.addButton(item.name);
-                break;
-            default:
-                if (item.icon) {
-                    fm.addButton(
-                        `${item.name}\n${item.price}${eco.name}/个`,
-                        item.icon
-                    );
-                    break;
-                }
-                fm.addButton(`${item.name}\n${item.price}${eco.name}/个`);
-                break;
+        if (item.items) {
+            if (item.icon) {
+                fm.addButton(item.name, item.icon);
+                continue;
+            }
+            fm.addButton(item.name);
+            continue;
         }
+        if (item.icon) {
+            fm.addButton(
+                `${item.name}\n${item.price}${eco.name}/个`,
+                item.icon
+            );
+            continue;
+        }
+        fm.addButton(`${item.name}\n${item.price}${eco.name}/个`);
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) {
@@ -201,27 +193,25 @@ function recycleShop(pl, shop, shopLink) {
             return main(pl);
         }
         const item = items[arg];
-        switch (item.type) {
-            case "shop":
-                shopLink.push(shop);
-                return recycleShop(pl, item, shopLink);
-            default:
-                let count = 0;
-                for (const plsItem of pl.getInventory().getAllItems()) {
-                    if (
-                        plsItem.type != item.id ||
-                        (item.dataValues && plsItem.aux != item.dataValues)
-                    )
-                        continue;
-                    count += plsItem.count;
-                }
-                if (count <= 0) {
-                    pl.tell(`§c物品${item.name}回收失败：数量不足`);
-                    return recycleShop(pl, shop, shopLink);
-                }
-                shopLink.push(shop);
-                return recycleConfirm(pl, item, count, shopLink);
+        if (item.items) {
+            shopLink.push(shop);
+            return recycleShop(pl, item, shopLink);
         }
+        let count = 0;
+        for (const plsItem of pl.getInventory().getAllItems()) {
+            if (
+                plsItem.type != item.id ||
+                (item.dataValues && plsItem.aux != item.dataValues)
+            )
+                continue;
+            count += plsItem.count;
+        }
+        if (count <= 0) {
+            pl.tell(`§c物品${item.name}回收失败：数量不足`);
+            return recycleShop(pl, shop, shopLink);
+        }
+        shopLink.push(shop);
+        return recycleConfirm(pl, item, count, shopLink);
     });
 }
 function recycleConfirm(pl, itemData, count, shopLink) {
