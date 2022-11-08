@@ -35,7 +35,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
     return re;
 });
 function sendInit(xuid) {
-    if (db.listKey().indexOf(xuid) > -1) return;
+    if (db.listKey().indexOf(xuid) >= 0) return;
     const pl = mc.getPlayer(xuid);
     const fm = mc.newSimpleForm();
     fm.setTitle("开始菜单");
@@ -75,7 +75,7 @@ function sendInit(xuid) {
                         continue;
                     options.push(data.xuid2name(key));
                 }
-                if (options.length < 1) {
+                if (options.length <= 0) {
                     pl.tell("§c暂无可组队用户");
                     return sendInit(xuid);
                 }

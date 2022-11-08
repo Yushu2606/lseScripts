@@ -6,7 +6,7 @@ const tax = conf.init("tax", [0, 3]);
 conf.close();
 mc.listen("onPlayerDie", (pl) => {
     const level = pl.getLevel();
-    if (level < 1) return;
+    if (level <= 0) return;
     const condition = Math.floor(tax[1] + tax[1] * level * 0.02);
     let reduce = Math.round(Math.random() * (tax[0] - condition) + condition);
     if (level < reduce) {

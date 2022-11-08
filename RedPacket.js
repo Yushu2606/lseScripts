@@ -37,7 +37,7 @@ function main(pl) {
         if (arg == null) return;
         switch (arg) {
             case 0:
-                if (pl.getLevel() < 1)
+                if (pl.getLevel() <= 0)
                     return pl.tell("§c红包发送失败：余额不足");
                 return send(pl);
             default:

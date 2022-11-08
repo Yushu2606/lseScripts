@@ -65,7 +65,7 @@ function main(pl) {
                 continue;
             count += item.count;
         }
-        if (count < 1) {
+        if (count <= 0) {
             pl.tell(`§c物品${it.name}回收失败：数量不足`);
             return main(pl);
         }
@@ -99,7 +99,7 @@ function confirm(pl, itemData, count) {
         }
         let buyCount = args[3];
         for (const item of its) {
-            if (buyCount < 1) break;
+            if (buyCount <= 0) break;
             if (
                 item.type != itemData.id ||
                 (itemData.dataValues && item.aux != itemData.dataValues)

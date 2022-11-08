@@ -16,11 +16,11 @@ mc.listen("onServerStarted", () => {
 });
 function main(pl) {
     const xp = pl.getCurrentExperience();
-    if (xp < 1) return pl.tell("§c转账失败：余额不足");
+    if (xp <= 0) return pl.tell("§c转账失败：余额不足");
     const plls = [];
     for (const pl1 of mc.getOnlinePlayers())
         if (pl1.xuid != pl.xuid) plls.push(pl1.realName);
-    if (plls.length < 1) return pl.tell("§c转账失败：暂无可转账用户");
+    if (plls.length <= 0) return pl.tell("§c转账失败：暂无可转账用户");
     const fm = mc.newCustomForm();
     fm.setTitle("转账菜单");
     fm.addDropdown("选择转账对象", plls);

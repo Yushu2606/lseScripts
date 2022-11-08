@@ -49,7 +49,7 @@ mc.listen("onServerStarted", () => {
 });
 mc.listen("onJoin", (pl) => {
     const shop = db.get(pl.xuid);
-    if (!shop || shop.pending.length < 1) return;
+    if (!shop || shop.pending.length <= 0) return;
     while (shop.pending.length > 0) {
         const history = shop.pending.shift();
         const get = Math.round(
@@ -74,14 +74,14 @@ function main(pl) {
     for (const owner of db.listKey()) {
         if (owner == pl.xuid) continue;
         const shop = db.get(owner);
-        if (Object.keys(shop.items).length < 1) continue;
+        if (Object.keys(shop.items).length <= 0) continue;
         else list.push(owner);
         fm.addButton(`${shop.name}§r\n店主：${data.xuid2name(owner)}`);
     }
     fm.setContent(
         `共有${
             list.length +
-            (db.get(pl.xuid) && Object.keys(ownShop.items).length < 1 ? 0 : 1)
+            (db.get(pl.xuid) && Object.keys(ownShop.items).length <= 0 ? 0 : 1)
         }个店铺在线`
     );
     pl.sendForm(fm, (pl, arg) => {
@@ -183,7 +183,7 @@ function itemList(pl, owner) {
             return itemList(pl, owner);
         }
         const canBuyMin = Math.round(eco.get(pl) / item.price);
-        if (canBuyMin < 1) {
+        if (canBuyMin <= 0) {
             pl.tell(`§c${item.name}§r购买失败：余额不足`);
             return itemList(pl, owner);
         }
@@ -249,7 +249,7 @@ function shopItemsManagement(pl) {
                     );
                     items.push(item);
                 }
-                if (itemsmsg.length < 1) {
+                if (itemsmsg.length <= 0) {
                     pl.tell("§c物品上架失败：背包为空");
                     return shopItemsManagement(pl);
                 }
@@ -520,7 +520,7 @@ function itemManagement(pl, guid) {
         }
         shop.items[item.guid].name = args[0] || item.name;
         shop.items[item.guid].price = args[1] ?? item.price;
-        const wbd = args[2] < 1;
+        const wbd = args[2] <= 0;
         if (args[2] != count) {
             const it = mc.newItem(itemNBT.setByte("Count", count - args[2]));
             if (!pl.getInventory().hasRoomFor(it)) {

@@ -18,7 +18,7 @@ function main(pl) {
     const pls = [];
     for (const plget of mc.getOnlinePlayers())
         if (plget.xuid != pl.xuid) pls.push(plget.realName);
-    if (pls.length < 1) return pl.tell("§c物品送达失败：暂无可送达用户");
+    if (pls.length <= 0) return pl.tell("§c物品送达失败：暂无可送达用户");
     const fm = mc.newCustomForm();
     fm.setTitle("快递菜单");
     fm.addDropdown("选择送达对象", pls);
@@ -35,7 +35,7 @@ function main(pl) {
         );
         items.push(item);
     }
-    if (items.length < 1) return pl.tell("§c物品送达失败：背包为空");
+    if (items.length <= 0) return pl.tell("§c物品送达失败：背包为空");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return;
         const level = pl.getLevel();
@@ -54,7 +54,7 @@ function main(pl) {
         );
         const sendItems = [];
         for (const index in args) {
-            if (args[index] < 1) continue;
+            if (args[index] <= 0) continue;
             const item = items[index];
             if (item.count < args[index]) {
                 pl.tell(
@@ -81,7 +81,7 @@ function main(pl) {
             pl1.giveItem(newitem);
             sendItems.push({ name: item.name, count: args[index] });
         }
-        if (sendItems.length < 1) return;
+        if (sendItems.length <= 0) return;
         pl.reduceLevel(reduce);
         pl.tell(`已向${pl1.realName}发送了以下物品（花费${reduce}级经验）：`);
         pl1.tell(`${pl.realName}向您发送了以下物品：`);
