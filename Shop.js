@@ -1,5 +1,5 @@
 "use strict";
-ll.registerPlugin("Shop", "商店", [1, 0, 0]);
+ll.registerPlugin("Shop", "商店", [1, 1, 9]);
 
 const config = new JsonConfigFile("plugins\\Shop\\config.json");
 const command = config.init("command", "shop");
@@ -50,119 +50,190 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 function main(pl) {
-    let fm = mc.newSimpleForm();
+    const fm = mc.newSimpleForm();
     fm.setTitle("商店菜单");
     fm.addButton("购买");
     fm.addButton("回收");
     pl.sendForm(fm, (pl, e) => {
         switch (e) {
             case 0:
-                return sellShop(pl);
+                return sellShop(pl, sell, []);
             case 1:
-                return recycleShop(pl);
+                return recycleShop(pl, recycle, []);
         }
     });
 }
-function sellShop(pl) {
-    let fm = mc.newSimpleForm();
-    fm.setTitle(`购买商店`);
-    for (const item of sell)
-        fm.addButton(`${item.name}\n${item.price}${eco.name}/个`, item.icon);
+function sellShop(pl, shop, shopLink) {
+    const fm = mc.newSimpleForm();
+    fm.setTitle(`购买商店 - ${shopLink.length <= 0 ? "主商店" : shop.name}`);
+    const items = shopLink.length <= 0 ? shop : shop.items;
+    for (const item of items) {
+        switch (item.type) {
+            case "shop":
+                if (item.icon) {
+                    fm.addButton(item.name, item.icon);
+                    break;
+                }
+                fm.addButton(item.name);
+                break;
+            default:
+                if (item.icon) {
+                    fm.addButton(
+                        `${item.name}\n${item.price}${eco.name}/个`,
+                        item.icon
+                    );
+                    break;
+                }
+                fm.addButton(`${item.name}\n${item.price}${eco.name}/个`);
+                break;
+        }
+    }
     pl.sendForm(fm, (pl, arg) => {
-        if (arg == null) return main(pl);
-        const item = sell[arg];
-        if (Math.round(eco.get(pl) / item.price) < 1) {
-            pl.tell("购买失败：余额不足");
-            return sellShop(pl);
+        if (arg == null) {
+            if (shopLink.length > 0) {
+                return sellShop(pl, shopLink.pop(), shopLink);
+            }
+            return main(pl);
         }
-        sellConfirm(pl, item);
+        const item = items[arg];
+        switch (item.type) {
+            case "shop":
+                shopLink.push(shop);
+                return sellShop(pl, item, shopLink);
+            default:
+                const maxNum = eco.get(pl) / item.price;
+                if (maxNum <= 0) {
+                    pl.tell(`§c物品${item.name}购买失败：余额不足`);
+                    return sellShop(pl, shop, shopLink);
+                }
+                shopLink.push(shop);
+                return sellConfirm(pl, item, maxNum, shopLink);
+        }
     });
 }
-function sellConfirm(pl, itemData) {
-    let fm = mc.newCustomForm();
+function sellConfirm(pl, itemData, maxNum, shopLink) {
+    const fm = mc.newCustomForm();
     fm.setTitle("购买确认");
     fm.addLabel(`物品名：${itemData.name}`);
     fm.addLabel(`价格：${itemData.price}/个`);
-    fm.addSlider(
-        "选择购买数量",
-        Math.round(1 / itemData.price),
-        Math.round(eco.get(pl) / itemData.price)
-    );
+    if (maxNum > 1)
+        fm.addSlider(
+            "选择购买数量",
+            Math.round(1 / itemData.price),
+            Math.round(maxNum)
+        );
+    else fm.addLabel("将购买1个");
     pl.sendForm(fm, (pl, args) => {
-        if (!args) return sellShop(pl);
-        const cost = itemData.price * args[2];
-        if (eco.get(pl) - cost < 1) {
-            pl.tell(`物品${itemData.name} * ${args[2]}购买失败：余额不足`);
-            return sellShop(pl);
+        if (!args) return sellShop(pl, shopLink.pop(), shopLink);
+        const num = args[2] ?? 1;
+        const cost = itemData.price * num;
+        if (eco.get(pl) < cost) {
+            pl.tell(`§c物品${itemData.name}*${num}购买失败：余额不足`);
+            return sellShop(pl, shopLink.pop(), shopLink);
         }
-        const item = mc.newItem(itemData.id, Number(args[2]));
+        const item = mc.newItem(itemData.id, Number(num));
         if (itemData.dataValues) item.setAux(itemData.dataValues);
-        const ench = new NbtList();
-        for (const enchantment in itemData.enchantments) {
-            ench.addTag(
-                new NbtCompound({
-                    id: new NbtInt(Number(enchantment.id)),
-                    lvl: new NbtInt(Number(enchantment.lvl)),
-                })
+        if (itemData.enchantments) {
+            const ench = new NbtList();
+            for (const enchantment in itemData.enchantments) {
+                ench.addTag(
+                    new NbtCompound({
+                        id: new NbtInt(Number(enchantment.id)),
+                        lvl: new NbtInt(Number(enchantment.lvl)),
+                    })
+                );
+            }
+            const nbt = item.getNbt();
+            const tag = nbt.getTag("tag");
+            item.setNbt(
+                nbt.setTag(
+                    "tag",
+                    tag
+                        ? tag.setTag("ench", ench)
+                        : new NbtCompound({
+                              ench: ench,
+                          })
+                )
             );
         }
-        const nbt = item.getNbt();
-        const tag = nbt.getTag("tag");
-        item.setNbt(
-            nbt.setTag(
-                "tag",
-                tag
-                    ? tag.setTag("ench", ench)
-                    : new NbtCompound({
-                          ench: ench,
-                      })
-            )
-        );
         if (!pl.getInventory().hasRoomFor(item)) {
-            pl.tell(`物品${itemData.name} * ${args[2]}购买失败：空间不足`);
-            return sellShop(pl);
+            pl.tell(`§c物品${itemData.name}*${num}购买失败：空间不足`);
+            return sellShop(pl, shopLink.pop(), shopLink);
         }
         eco.reduce(pl, Math.round(cost));
-        pl.giveItem(item, Number(args[2]));
+        pl.giveItem(item, Number(num));
         pl.tell(
-            `物品${itemData.name} * ${args[2]}购买成功（花费${cost}${eco.name}）`
+            `物品${itemData.name}*${num}购买成功（花费${cost}${eco.name}）`
         );
-        sellShop(pl);
+        return sellShop(pl, shopLink.pop(), shopLink);
     });
 }
-function recycleShop(pl) {
+function recycleShop(pl, shop, shopLink) {
     const fm = mc.newSimpleForm();
-    fm.setTitle("回收商店");
-    for (const item of recycle)
-        fm.addButton(`${item.name}\n${item.price}${eco.name}/个`, item.icon);
+    fm.setTitle(`回收商店 - ${shopLink.length <= 0 ? "主商店" : shop.name}`);
+    const items = shopLink.length <= 0 ? shop : shop.items;
+    for (const item of items) {
+        switch (item.type) {
+            case "shop":
+                if (item.icon) {
+                    fm.addButton(item.name, item.icon);
+                    break;
+                }
+                fm.addButton(item.name);
+                break;
+            default:
+                if (item.icon) {
+                    fm.addButton(
+                        `${item.name}\n${item.price}${eco.name}/个`,
+                        item.icon
+                    );
+                    break;
+                }
+                fm.addButton(`${item.name}\n${item.price}${eco.name}/个`);
+                break;
+        }
+    }
     pl.sendForm(fm, (pl, arg) => {
-        if (arg == null) return main(pl);
-        const it = recycle[arg];
-        let count = 0;
-        for (const item of pl.getInventory().getAllItems()) {
-            if (
-                item.type != it.id ||
-                (it.dataValues && item.aux != it.dataValues)
-            )
-                continue;
-            count += item.count;
+        if (arg == null) {
+            if (shopLink.length > 0) {
+                return recycleShop(pl, shopLink.pop(), shopLink);
+            }
+            return main(pl);
         }
-        if (count < 1) {
-            pl.tell(`§c物品${it.name}回收失败：数量不足`);
-            return recycleShop(pl);
+        const item = items[arg];
+        switch (item.type) {
+            case "shop":
+                shopLink.push(shop);
+                return recycleShop(pl, item, shopLink);
+            default:
+                let count = 0;
+                for (const plsItem of pl.getInventory().getAllItems()) {
+                    if (
+                        plsItem.type != item.id ||
+                        (item.dataValues && plsItem.aux != item.dataValues)
+                    )
+                        continue;
+                    count += plsItem.count;
+                }
+                if (count <= 0) {
+                    pl.tell(`§c物品${item.name}回收失败：数量不足`);
+                    return recycleShop(pl, shop, shopLink);
+                }
+                shopLink.push(shop);
+                return recycleConfirm(pl, item, count, shopLink);
         }
-        recycleConfirm(pl, it, count);
     });
 }
-function recycleConfirm(pl, itemData, count) {
+function recycleConfirm(pl, itemData, count, shopLink) {
     const fm = mc.newCustomForm();
     fm.setTitle("回收确认");
     fm.addLabel(`物品名：${itemData.name}`);
     fm.addLabel(`回收价：${itemData.price}/个`);
     fm.addLabel(`当前税率：${serviceCharge * 100}％`);
-    fm.addSlider("选择回收数量", 1, count);
+    if (count > 1) fm.addSlider("选择回收数量", 1, count);
+    else fm.addLabel("将回收1个");
     pl.sendForm(fm, (pl, args) => {
-        if (!args) return recycleShop(pl);
+        if (!args) return recycleShop(pl, shopLink.pop(), shopLink);
         const its = pl.getInventory().getAllItems();
         let count = 0;
         for (const item of its) {
@@ -173,15 +244,16 @@ function recycleConfirm(pl, itemData, count) {
                 continue;
             count += item.count;
         }
-        if (count < args[3]) {
+        const num = args[3] ?? 1;
+        if (count < num) {
             pl.tell(
                 `§c物品${itemData.name}回收失败：数量不足（只有${count}个）`
             );
-            return recycleShop(pl);
+            return recycleShop(pl, shopLink.pop(), shopLink);
         }
-        let buyCount = args[3];
+        let buyCount = num;
         for (const item of its) {
-            if (buyCount < 1) break;
+            if (buyCount <= 0) break;
             if (
                 item.type != itemData.id ||
                 (itemData.dataValues && item.aux != itemData.dataValues)
@@ -192,11 +264,9 @@ function recycleConfirm(pl, itemData, count) {
             else item.setNull();
             pl.refreshItems();
         }
-        const add = Math.round(args[3] * itemData.price * (1 - serviceCharge));
+        const add = Math.round(num * itemData.price * (1 - serviceCharge));
         eco.add(pl, add);
-        pl.tell(
-            `物品${itemData.name} * ${args[3]}回收成功（获得${add}${eco.name}）`
-        );
-        recycleShop(pl);
+        pl.tell(`物品${itemData.name}*${num}回收成功（获得${add}${eco.name}）`);
+        return recycleShop(pl, shopLink.pop(), shopLink);
     });
 }
