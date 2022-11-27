@@ -42,9 +42,9 @@ const eco = (() => {
     switch (currencyType) {
         case "llmoney":
             return {
-                add: (pl, m) => money.add(pl.xuid, m),
-                reduce: (pl, m) => money.reduce(pl.xuid, m),
-                get: (pl) => money.get(pl.xuid),
+                add: (pl, money) => pl.addMoney(money),
+                reduce: (pl, money) => pl.reduceMoney(money),
+                get: (pl) => pl.getMoney(),
                 name: currencyName,
             };
         case "scoreboard":
@@ -107,10 +107,11 @@ function main(pl) {
 function confirm(pl, itemData, count) {
     const fm = mc.newCustomForm();
     fm.setTitle("回收确认");
-    fm.addLabel(`物品名：${itemData.name}`);
-    fm.addLabel(`回收价：${itemData.price}/个`);
+    fm.addLabel(`名称：${itemData.name}`);
+    fm.addLabel(`单价：${itemData.price}`);
     fm.addLabel(`当前税率：${serviceCharge * 100}％`);
-    fm.addSlider("选择回收数量", 1, count);
+    if (count > 1) fm.addSlider("数量", 1, count);
+    else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return main(pl);
         const its = pl.getInventory().getAllItems();

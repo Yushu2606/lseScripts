@@ -42,9 +42,9 @@ const eco = (() => {
     switch (currencyType) {
         case "llmoney":
             return {
-                add: (pl, m) => money.add(pl.xuid, m),
-                reduce: (pl, m) => money.reduce(pl.xuid, m),
-                get: (pl) => money.get(pl.xuid),
+                add: (pl, money) => pl.addMoney(money),
+                reduce: (pl, money) => pl.reduceMoney(money),
+                get: (pl) => pl.getMoney(),
                 name: currencyName,
             };
         case "scoreboard":
@@ -140,16 +140,16 @@ function sellShop(pl, shop, shopLink) {
 }
 function sellConfirm(pl, itemData, maxNum, shopLink) {
     const fm = mc.newCustomForm();
-    fm.setTitle("购买确认");
-    fm.addLabel(`物品名：${itemData.name}`);
-    fm.addLabel(`价格：${itemData.price}/个`);
+    fm.setTitle("购买物品");
+    fm.addLabel(`名称：${itemData.name}`);
+    fm.addLabel(`单价：${itemData.price}`);
     if (maxNum > 1)
         fm.addSlider(
-            "选择购买数量",
+            "数量",
             Math.round(1 / itemData.price),
             Math.round(maxNum)
         );
-    else fm.addLabel("将购买1个");
+    else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return sellShop(pl, shopLink.pop(), shopLink);
         const num = args[2] ?? 1;
@@ -248,12 +248,12 @@ function recycleShop(pl, shop, shopLink) {
 }
 function recycleConfirm(pl, itemData, count, shopLink) {
     const fm = mc.newCustomForm();
-    fm.setTitle("回收确认");
-    fm.addLabel(`物品名：${itemData.name}`);
-    fm.addLabel(`回收价：${itemData.price}/个`);
+    fm.setTitle("回收物品");
+    fm.addLabel(`名称：${itemData.name}`);
+    fm.addLabel(`单价：${itemData.price}`);
     fm.addLabel(`当前税率：${serviceCharge * 100}％`);
-    if (count > 1) fm.addSlider("选择回收数量", 1, count);
-    else fm.addLabel("将回收1个");
+    if (count > 1) fm.addSlider("数量", 1, count);
+    else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return recycleShop(pl, shopLink.pop(), shopLink);
         const its = pl.getInventory().getAllItems();

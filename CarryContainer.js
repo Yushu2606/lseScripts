@@ -39,7 +39,7 @@ mc.listen("onOpenContainer", (player, block) => {
     if (
         !player.sneaking ||
         !player.getHand().isNull() ||
-        block.type.match(/shulker_box/) ||
+        block.type.match("shulker_box") ||
         !container ||
         container.size > 32
     )
