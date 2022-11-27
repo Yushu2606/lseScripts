@@ -41,7 +41,7 @@ mc.listen("onChat", (pl, msg) => {
     if (rtnMsgs[xuid].indexOf(msg) > 0) return false;
     rtnMsgs[xuid].unshift(msg);
     mc.broadcast(
-        `${time.h}:${time.m < 10 ? 0 : ""}${time.m} ${pl.realName}： ${msg}`
+        `${time.h}:${time.m < 10 ? 0 : ""}${time.m} ${pl.realName}：${msg}`
     );
     setTimeout(() => rtnMsgs[xuid].pop(), 10000);
     return false;
