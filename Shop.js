@@ -33,7 +33,7 @@ English:
 "use strict";
 ll.registerPlugin("Shop", "商店", [1, 1, 9]);
 
-const config = new JsonConfigFile("plugins\\Shop\\config.json");
+const config = new JsonConfigFile("plugins/Shop/config.json");
 const command = config.init("command", "shop");
 const serviceCharge = config.init("serviceCharge", 0.02);
 const currencyType = config.init("currencyType", "llmoney");
@@ -68,7 +68,7 @@ const eco = (() => {
     }
 })();
 config.close();
-const db = new JsonConfigFile("plugins\\Shop\\data.json");
+const db = new JsonConfigFile("plugins/Shop/data.json");
 const sell = db.init("sell", []);
 const recycle = db.init("recycle", []);
 db.close();
@@ -183,14 +183,10 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
                 )
             );
         }
-        if (!pl.getInventory().hasRoomFor(item)) {
-            pl.tell(`§c物品${itemData.name}*${num}购买失败：空间不足`);
-            return sellShop(pl, shopLink.pop(), shopLink);
-        }
         eco.reduce(pl, Math.round(cost));
         pl.giveItem(item, Number(num));
         pl.tell(
-            `物品${itemData.name}*${num}购买成功（花费${cost}${eco.name}）`
+            `物品${itemData.name}*${num}购买成功：花费${cost}${eco.name}`
         );
         return sellShop(pl, shopLink.pop(), shopLink);
     });
@@ -288,7 +284,7 @@ function recycleConfirm(pl, itemData, count, shopLink) {
         }
         const add = Math.round(num * itemData.price * (1 - serviceCharge));
         eco.add(pl, add);
-        pl.tell(`物品${itemData.name}*${num}回收成功（获得${add}${eco.name}）`);
+        pl.tell(`物品${itemData.name}*${num}回收成功：获得${add}${eco.name}`);
         return recycleShop(pl, shopLink.pop(), shopLink);
     });
 }

@@ -33,10 +33,10 @@ English:
 "use strict";
 ll.registerPlugin("HubInfo", "信息栏", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins\\HubInfo\\config.json");
+const config = new JsonConfigFile("plugins/HubInfo/config.json");
 const serverName = config.init("serverName", "");
 config.close();
-const db = new KVDatabase("plugins\\HubInfo\\data");
+const db = new KVDatabase("plugins/HubInfo/data");
 let ticks = [];
 let realTPMS = 0;
 let newTick = Date.now();

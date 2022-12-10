@@ -33,7 +33,7 @@ English:
 "use strict";
 ll.registerPlugin("DeathTax", "死亡税", [1, 0, 0]);
 
-const conf = new JsonConfigFile("plugins\\DeathTax\\config.json");
+const conf = new JsonConfigFile("plugins/DeathTax/config.json");
 const tax = conf.init("tax", [0, 3]);
 conf.close();
 mc.listen("onPlayerDie", (pl) => {

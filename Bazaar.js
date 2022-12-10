@@ -102,6 +102,12 @@ let db = new KVDatabase("plugins/Bazaar/data");
                     serviceCharge: Number(ut.serviceCharge),
                 });
             }
+            if (
+                newShop.items.length <= 0 &&
+                newShop.offers.length <= 0 &&
+                newShop.unprocessedTransactions.length <= 0
+            )
+                continue;
             sellers[key] = newShop;
         }
         olddb.close();
@@ -285,9 +291,9 @@ function browseItems(pl) {
     const realItems = [];
     for (const item of itemsValue) {
         if (item.seller == pl.xuid) continue;
-        const itemNBT = NBT.parseSNBT(item.snbt);
+        const newItem = mc.newItem(NBT.parseSNBT(item.snbt));
         fm.addButton(
-            `${itemNBT.getTag("Name")}*${item.count}\n${item.price}${
+            `${newItem.name}（${newItem.type}）*${item.count}\n${item.price}${
                 eco.name
             }/个 ${data.xuid2name(item.seller)}`
         );

@@ -33,7 +33,7 @@ English:
 "use strict";
 ll.registerPlugin("Menu", "菜单", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins\\Menu\\config.json");
+const config = new JsonConfigFile("plugins/Menu/config.json");
 const itemType = config.init("itemType", {});
 const commands = config.init("commands", {});
 config.close();
@@ -43,7 +43,7 @@ mc.listen("onUseItem", (pl, it) => {
 mc.listen("onServerStarted", () => {
     for (const command in commands) {
         const menus = new JsonConfigFile(
-            `plugins\\Menu\\menus\\${command}.json`,
+            `plugins/Menu/menus/${command}.json`,
             data.toJson({}, 4)
         );
         const title = menus.get("title", "菜单。");
@@ -59,7 +59,7 @@ mc.listen("onServerStarted", () => {
 });
 function menu(pl, mu) {
     const menus = new JsonConfigFile(
-        `plugins\\Menu\\menus\\${mu}.json`,
+        `plugins/Menu/menus/${mu}.json`,
         data.toJson({}, 4)
     );
     const title = menus.get("title", "");

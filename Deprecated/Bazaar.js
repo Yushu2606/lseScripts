@@ -43,9 +43,9 @@ const eco = (() => {
     switch (currencyType) {
         case "llmoney":
             return {
-                add: (pl, m) => money.add(pl.xuid, m),
-                reduce: (pl, m) => money.reduce(pl.xuid, m),
-                get: (pl) => money.get(pl.xuid),
+                add: (pl, money) => pl.addMoney(money),
+                reduce: (pl, money) => pl.reduceMoney(money),
+                get: (pl) => pl.getMoney(),
                 name: currencyName,
             };
         case "scoreboard":

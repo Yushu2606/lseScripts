@@ -36,7 +36,7 @@ ll.registerPlugin("NameInfo", "名称信息", [1, 0, 0]);
 const msgs = {};
 mc.listen("onTick", () => {
     for (const pl of mc.getOnlinePlayers()) {
-        if (!pl.canShowNameTag) continue;
+        if (!pl.isLoading) continue;
         let strOfMsgs = "";
         for (const msg of msgs[pl.xuid] ?? [])
             strOfMsgs += `${msg[0].h}:${msg[0].m < 10 ? 0 : ""}${msg[0].m} ${

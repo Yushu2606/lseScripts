@@ -33,10 +33,10 @@ English:
 "use strict";
 ll.registerPlugin("SLULA", "用户协议", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins\\SLULA\\config.json");
+const config = new JsonConfigFile("plugins/SLULA/config.json");
 const server = config.init("server", 0);
 config.close();
-const db = new KVDatabase("plugins\\SLULA\\data");
+const db = new KVDatabase("plugins/SLULA/data");
 mc.listen("onJoin", (pl) => {
     if (db.get(pl.xuid)) {
         if (server) ll.import("BlockIsland", "sendInit")(pl.xuid);

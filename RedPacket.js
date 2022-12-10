@@ -33,10 +33,10 @@ English:
 "use strict";
 ll.registerPlugin("RedPacket", "红包", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins\\RedPacket\\config.json");
+const config = new JsonConfigFile("plugins/RedPacket/config.json");
 const command = config.init("command", "redpacket");
 config.close();
-const db = new KVDatabase("plugins\\RedPacket\\data");
+const db = new KVDatabase("plugins/RedPacket/data");
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand(command, "打开红包菜单。", PermType.Any);
     cmd.overload();
@@ -73,11 +73,12 @@ function main(pl) {
                     return pl.tell("§c红包发送失败：余额不足");
                 return send(pl);
             default:
-                redpacket(pl, db.get(keys[arg - 1]));
+                redpacket(pl, keys[arg - 1]);
         }
     });
 }
-function redpacket(pl, rpdata) {
+function redpacket(pl, key) {
+    const rpdata = db.get(key);
     const fm = mc.newSimpleForm();
     fm.setTitle(rpdata.msg || "红包");
     if (
@@ -86,7 +87,7 @@ function redpacket(pl, rpdata) {
         rpdata.count > Object.keys(rpdata.recipient).length
     ) {
         rpdata.recipient[pl.xuid] = { time: system.getTimeStr() };
-        db.set(rpdata.guid, rpdata);
+        db.set(key, rpdata);
         pl.addExperience(rpdata.level);
         pl.tell(
             `您领取了${data.xuid2name(rpdata.sender)}的红包${rpdata.msg}获得了${
@@ -106,7 +107,7 @@ function redpacket(pl, rpdata) {
 }
 function send(pl) {
     const fm = mc.newCustomForm();
-    fm.setTitle("红包 —— 发送菜单");
+    fm.setTitle("发送红包");
     fm.addInput("信息", "字符串");
     const xp = pl.getCurrentExperience();
     fm.addSlider("发送数量", 1, xp);
@@ -119,7 +120,6 @@ function send(pl) {
         pl.reduceExperience(count);
         const guid = system.randomGuid();
         db.set(guid, {
-            guid: guid,
             sender: pl.xuid,
             msg: args[0],
             count: args[1],

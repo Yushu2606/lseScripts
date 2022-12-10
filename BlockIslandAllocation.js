@@ -33,7 +33,7 @@ English:
 "use strict";
 ll.registerPlugin("BlockIslandAllocation", "岛屿分配系统", [1, 0, 0]);
 
-const db = new KVDatabase("plugins\\BlockIslandAllocation\\data");
+const db = new KVDatabase("plugins/BlockIslandAllocation/data");
 if (db.listKey().indexOf("spawn") < 0)
     db.set("spawn", { version: "spawn", pos: { x: 0, y: -64, z: 0 } });
 mc.listen("onPlaceBlock", (pl, bl) => {
@@ -98,6 +98,7 @@ function sendInit(xuid) {
                 return pl.tell("分配完毕");
             case 1:
                 const options = [];
+                const xuids = [];
                 for (const key of db.listKey()) {
                     if (
                         db.get(key).version == "team" ||
@@ -106,6 +107,7 @@ function sendInit(xuid) {
                     )
                         continue;
                     options.push(data.xuid2name(key));
+                    xuids.push(key);
                 }
                 if (options.length <= 0) {
                     pl.tell("§c暂无可组队用户");
@@ -116,7 +118,7 @@ function sendInit(xuid) {
                 fm.addDropdown("选择用户", options);
                 pl.sendForm(fm, (pl, args) => {
                     if (!args) return sendInit(xuid);
-                    const pl1 = mc.getPlayer(options[args[0]]);
+                    const pl1 = mc.getPlayer(xuids[args[0]]);
                     if (!pl1) {
                         pl.tell(`§c${options[args[0]]}已离线`);
                         return sendInit(xuid);
@@ -127,7 +129,7 @@ function sendInit(xuid) {
                         "同意",
                         "拒绝",
                         (pl1, arg) => {
-                            if (!mc.getPlayer(pl.realName)) return;
+                            if (!mc.getPlayer(pl.xuid)) return;
                             if (!arg) {
                                 pl.tell(`§c与${pl1.realName}的组队请求被拒绝`);
                                 return sendInit(xuid);

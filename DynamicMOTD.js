@@ -33,7 +33,7 @@ English:
 "use strict";
 ll.registerPlugin("DynamicMOTD", "动态MOTD", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins\\DynamicMOTD\\config.json");
+const config = new JsonConfigFile("plugins/DynamicMOTD/config.json");
 const interval = config.init("interval", 5);
 const motd = config.init("motd", [
     "This is a dynamic MOTD",

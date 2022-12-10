@@ -33,7 +33,7 @@ English:
 "use strict";
 ll.registerPlugin("RecycleShop", "回收商店", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins\\RecycleShop\\config.json");
+const config = new JsonConfigFile("plugins/RecycleShop/config.json");
 const command = config.init("command", "recycleshop");
 const serviceCharge = config.init("serviceCharge", 0.02);
 const currencyType = config.init("currencyType", "llmoney");
@@ -68,7 +68,7 @@ const eco = (() => {
     }
 })();
 config.close();
-const db = new JsonConfigFile("plugins\\RecycleShop\\data.json");
+const db = new JsonConfigFile("plugins/RecycleShop/data.json");
 const recycle = db.init("recycle", []);
 db.close();
 mc.listen("onServerStarted", () => {
@@ -146,7 +146,7 @@ function confirm(pl, itemData, count) {
         const add = Math.round(args[3] * itemData.price * (1 - serviceCharge));
         eco.add(pl, add);
         pl.tell(
-            `物品${itemData.name} * ${args[3]}回收成功（获得${add}${eco.name}）`
+            `物品${itemData.name}*${args[3]}回收成功：获得${add}${eco.name}`
         );
         main(pl);
     });

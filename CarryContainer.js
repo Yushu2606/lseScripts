@@ -63,6 +63,7 @@ mc.listen("onUseItemOn", (player, item, block, side) => {
         block.pos.z + (side == 3 ? 1 : side == 2 ? -1 : 0),
         block.pos.dimid
     );
+    if (!mc.getBlock(pos).isAir) return;
     const facing = player.direction.toFacing();
     const blockNBT = NBT.parseSNBT(container.block);
     mc.setBlock(
@@ -81,8 +82,8 @@ mc.listen("onUseItemOn", (player, item, block, side) => {
         mc.getBlock(pos)
             .getBlockEntity()
             .setNbt(NBT.parseSNBT(container.blockEntity));
-        db.delete(player.xuid);
     }, 50);
+    db.delete(player.xuid);
     return false;
 });
 mc.listen("onTick", () => {
