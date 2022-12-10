@@ -89,17 +89,17 @@ let db = new KVDatabase("plugins/Bazaar/data");
             for (const item of Object.values(shop.items)) {
                 items[item.guid] = {
                     snbt: item.snbt,
-                    count: NBT.parseSNBT(item.snbt).getData("Count"),
-                    price: item.price,
+                    count: Number(NBT.parseSNBT(item.snbt).getData("Count")),
+                    price: Number(item.price),
                     seller: key,
                 };
                 newShop.items.push(item.guid);
             }
             for (const ut of shop.pending) {
                 newShop.unprocessedTransactions.push({
-                    price: ut.item.price,
-                    count: ut.count,
-                    serviceCharge: ut.serviceCharge,
+                    price: Number(ut.item.price),
+                    count: Number(ut.count),
+                    serviceCharge: Number(ut.serviceCharge),
                 });
             }
             sellers[key] = newShop;
