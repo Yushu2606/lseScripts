@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Bazaar", "集市", [2, 0, 1]);
+ll.registerPlugin("Bazaar", "集市", [2, 0, 2]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
@@ -421,7 +421,8 @@ function itemBuy(pl, uuid) {
             pl.sendToast("集市", "§c物品购买失败：库存不足");
             return browseItems(pl);
         }
-        const cost = Math.round(num * nowItems[uuid].price);
+        const price = nowItems[uuid].price;
+        const cost = Math.round(num * price);
         if (eco.get(pl) < cost) {
             pl.sendToast("集市", "§c物品购买失败：余额不足");
             return browseItems(pl);
@@ -448,7 +449,7 @@ function itemBuy(pl, uuid) {
             );
         } else
             sellers[seller].unprocessedTransactions.push({
-                price: nowItems[uuid].price,
+                price: price,
                 count: num,
                 serviceCharge: serviceCharge,
             });
@@ -513,6 +514,9 @@ function offerProcess(pl, uuid) {
             pl.sendToast("集市", "§c报价处理失败：物品不足");
             return browseOffers(pl);
         }
+        const get = Math.round(
+            num * nowOffers[uuid].price * (1 - serviceCharge)
+        );
         const seller = nowOffers[uuid].seller;
         const sellers = db.get("sellers") ?? {};
         if (nowOffers[uuid].count <= num) {
@@ -533,9 +537,6 @@ function offerProcess(pl, uuid) {
             else invItem.setNull();
             pl.refreshItems();
         }
-        const get = Math.round(
-            num * nowOffers[uuid].price * (1 - serviceCharge)
-        );
         eco.add(pl, get);
         const sellerObj = mc.getPlayer(seller);
         if (sellerObj) {
