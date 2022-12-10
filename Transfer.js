@@ -59,8 +59,8 @@ function main(pl) {
     if (plsnm.length <= 0) return pl.tell("§c转账失败：暂无可转账用户");
     const fm = mc.newCustomForm();
     fm.setTitle("转账菜单");
-    fm.addDropdown("选择转账对象", plsnm);
-    fm.addSlider("选择转账经验值", 1, xp);
+    fm.addDropdown("目标", plsnm);
+    fm.addSlider("经验值", 1, xp);
     fm.addLabel(`当前汇率：${rate * 100}％`);
     pl.sendForm(fm, (pl, args) => {
         if (!args) return;

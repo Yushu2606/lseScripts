@@ -115,7 +115,7 @@ function sendInit(xuid) {
                 }
                 const fm = mc.newCustomForm();
                 fm.setTitle("与在线用户组队");
-                fm.addDropdown("选择用户", options);
+                fm.addDropdown("用户", options);
                 pl.sendForm(fm, (pl, args) => {
                     if (!args) return sendInit(xuid);
                     const pl1 = mc.getPlayer(xuids[args[0]]);

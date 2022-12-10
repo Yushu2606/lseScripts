@@ -57,7 +57,7 @@ function main(pl) {
     if (plsnm.length <= 0) return pl.tell("§c物品送达失败：暂无可送达用户");
     const fm = mc.newCustomForm();
     fm.setTitle("快递菜单");
-    fm.addDropdown("选择送达对象", plsnm);
+    fm.addDropdown("目标", plsnm);
     const items = [];
     const inventoryItems = pl.getInventory().getAllItems();
     for (const item of inventoryItems) {
