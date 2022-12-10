@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Bazaar", "集市", [2, 0, 2]);
+ll.registerPlugin("Bazaar", "集市", [2, 0, 3]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
@@ -293,9 +293,9 @@ function browseItems(pl) {
         if (item.seller == pl.xuid) continue;
         const newItem = mc.newItem(NBT.parseSNBT(item.snbt));
         fm.addButton(
-            `${newItem.name}（${newItem.type}）*${item.count}\n${item.price}${
-                eco.name
-            }/个 ${data.xuid2name(item.seller)}`
+            `${newItem.name}（${newItem.type} ${newItem.aux}）*${item.count}\n${
+                item.price
+            }${eco.name}/个 ${data.xuid2name(item.seller)}`
         );
         realItems.push(itemsKey[itemsValue.indexOf(item)]);
     }
@@ -319,10 +319,19 @@ function browseOffers(pl) {
     const realOffers = [];
     for (const offer of offersValue) {
         if (offer.seller == pl.xuid) continue;
+        const nbtData = {
+            Name: new NbtString(offers[uuid].type),
+            Damage: new NbtShort(offers[uuid].data),
+            Count: new NbtByte(1),
+        };
+        if (offers[uuid].ench)
+            nbtData.ench = new NbtCompound(offers[uuid].ench);
+        const nbt = new NbtCompound(nbtData);
+        const item = mc.newItem(nbt);
         fm.addButton(
-            `${offer.type}（${offer.data}）*${offer.count}\n${offer.price}${
-                eco.name
-            }/个 ${data.xuid2name(offer.seller)}`
+            `${item.name}（${item.type} ${item.aux}）*${offer.count}\n${
+                offer.price
+            }${eco.name}/个 ${data.xuid2name(offer.seller)}`
         );
         realOffers.push(offersKey[offersValue.indexOf(offer)]);
     }
@@ -343,11 +352,9 @@ function itemsManagement(pl) {
     const sellers = db.get("sellers") ?? {};
     const items = db.get("items") ?? {};
     for (const uuid of sellers[pl.xuid].items) {
-        const itemNBT = NBT.parseSNBT(items[uuid].snbt);
+        const newItem = mc.newItem(NBT.parseSNBT(items[uuid].snbt));
         fm.addButton(
-            `${itemNBT.getTag("Name")}*${items[uuid].count}\n${
-                items[uuid].price
-            }${eco.name}/个`
+            `${newItem.name}（${newItem.type} ${newItem.aux}）*${item.count}\n${item.price}${eco.name}/个`
         );
     }
     pl.sendForm(fm, (pl, arg) => {
@@ -366,10 +373,20 @@ function offersManagement(pl) {
     fm.addButton("创建报价");
     const sellers = db.get("sellers") ?? {};
     const offers = db.get("offers") ?? {};
-    for (const uuid of sellers[pl.xuid].offers)
+    for (const uuid of sellers[pl.xuid].offers) {
+        const nbtData = {
+            Name: new NbtString(offers[uuid].type),
+            Damage: new NbtShort(offers[uuid].data),
+            Count: new NbtByte(1),
+        };
+        if (offers[uuid].ench)
+            nbtData.ench = new NbtCompound(offers[uuid].ench);
+        const nbt = new NbtCompound(nbtData);
+        const item = mc.newItem(nbt);
         fm.addButton(
-            `${offers[uuid].type}*${offers[uuid].count}\n${offers[uuid].price}${eco.name}/个`
+            `${item.name}（${item.type} ${item.aux}）*${offer.count}\n${offer.price}${eco.name}/个`
         );
+    }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return browseOffers(pl);
         switch (arg) {
