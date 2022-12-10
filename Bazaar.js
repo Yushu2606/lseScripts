@@ -1,3 +1,35 @@
+/*
+English:
+    Bazaar
+    Copyright (C) 2022  StarsDream00 starsdream00@icloud.com
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+中文：
+    物品集市
+    版权所有 © 2022  星梦喵吖 starsdream00@icloud.com
+    本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
+    或（您选择的）任何后来的版本重新发布和/或修改它。
+
+    本程序的分发是希望它能发挥价值，但没有做任何保证；甚至没有隐含的适销对路或适合某一特定目的的保证。
+    更多细节请参见GNU Affero通用公共许可证。
+
+    您应该已经收到了一份GNU Affero通用公共许可证的副本。如果没有，
+    请参阅<https://www.gnu.org/licenses/>（<https://www.gnu.org/licenses/agpl-3.0.html>）
+    及其非官方中文翻译<https://www.chinasona.org/gnu/agpl-3.0-cn.html>。
+*/
+
 "use strict";
 ll.registerPlugin("Bazaar", "集市", [2, 0, 0]);
 
@@ -36,7 +68,48 @@ const eco = (() => {
 })();
 const serviceCharge = config.init("serviceCharge", 0.02);
 config.close();
-const db = new KVDatabase("plugins/Bazaar/data");
+let db = new KVDatabase("plugins/Bazaar/data");
+// For compatibility
+{
+    const keys = db.listKey();
+    if (!keys.items || !keys.offers) {
+        db.close();
+        File.rename("plugins/Bazaar/data", "plugins/Bazaar/data_v1");
+        db = new KVDatabase("plugins/Bazaar/data");
+        const olddb = new KVDatabase("plugins/Bazaar/data_v1");
+        const items = {};
+        const sellers = {};
+        for (const key of keys) {
+            const shop = olddb.get(key);
+            const newShop = {
+                items: [],
+                offers: [],
+                unprocessedTransactions: [],
+            };
+            for (const item of Object.values(shop.items)) {
+                items[item.guid] = {
+                    snbt: item.snbt,
+                    count: NBT.parseSNBT(item.snbt).getTag("Count"),
+                    price: item.price,
+                    seller: key,
+                };
+                newShop.items.push(item.guid);
+            }
+            for (const ut of shop.pending) {
+                newShop.unprocessedTransactions.push({
+                    price: ut.item.price,
+                    count: ut.count,
+                    serviceCharge: ut.serviceCharge,
+                });
+            }
+            sellers[key] = newShop;
+        }
+        olddb.close();
+        db.set("items", items);
+        db.set("offers", {});
+        db.set("sellers", sellers);
+    }
+}
 const ench = [
     "保护",
     "火焰保护",
@@ -145,12 +218,12 @@ mc.listen("onJoin", (pl) => {
     for (const ut of sellers[pl.xuid].unprocessedTransactions) {
         if (ut.item) {
             const nbtData = {
-                Name: new NbtString(offers[guid].type),
-                Damage: new NbtShort(offers[guid].data),
+                Name: new NbtString(offers[uuid].type),
+                Damage: new NbtShort(offers[uuid].data),
                 Count: new NbtByte(1),
             };
-            if (offers[guid].ench)
-                nbtData.ench = new NbtCompound(offers[guid].ench);
+            if (offers[uuid].ench)
+                nbtData.ench = new NbtCompound(offers[uuid].ench);
             const nbt = new NbtCompound(nbtData);
             const item = mc.newItem(nbt);
             pl.giveItem(item, ut.count);
@@ -271,11 +344,11 @@ function itemsManagement(pl) {
     fm.addButton("上架物品");
     const sellers = db.get("sellers") ?? {};
     const items = db.get("items") ?? {};
-    for (const guid of sellers[pl.xuid].items) {
-        const itemNBT = NBT.parseSNBT(items[guid].snbt);
+    for (const uuid of sellers[pl.xuid].items) {
+        const itemNBT = NBT.parseSNBT(items[uuid].snbt);
         fm.addButton(
-            `${itemNBT.getTag("Name")}*${items[guid].count}\n${
-                items[guid].price
+            `${itemNBT.getTag("Name")}*${items[uuid].count}\n${
+                items[uuid].price
             }${eco.name}/个`
         );
     }
@@ -285,7 +358,7 @@ function itemsManagement(pl) {
             case 0:
                 return itemUpload(pl);
             default:
-                return browseItems(pl); // itemEdit(pl, sellers[pl.xuid].items[arg - 1]);
+                return itemsManagement(pl); // itemEdit(pl, sellers[pl.xuid].items[arg - 1]);
         }
     });
 }
@@ -295,9 +368,9 @@ function offersManagement(pl) {
     fm.addButton("创建报价");
     const sellers = db.get("sellers") ?? {};
     const offers = db.get("offers") ?? {};
-    for (const guid of sellers[pl.xuid].offers)
+    for (const uuid of sellers[pl.xuid].offers)
         fm.addButton(
-            `${offers[guid].type}*${offers[guid].count}\n${offers[guid].price}${eco.name}/个`
+            `${offers[uuid].type}*${offers[uuid].count}\n${offers[uuid].price}${eco.name}/个`
         );
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return browseOffers(pl);
@@ -305,31 +378,31 @@ function offersManagement(pl) {
             case 0:
                 return offerCreate(pl);
             default:
-                return browseOffers(pl); // offerEdit(pl, sellers[pl.xuid].offers[arg - 1]);
+                return offersManagement(pl); // offerEdit(pl, sellers[pl.xuid].offers[arg - 1]);
         }
     });
 }
-function itemBuy(pl, guid) {
+function itemBuy(pl, uuid) {
     const items = db.get("items") ?? {};
-    if (!(guid in items)) {
+    if (!(uuid in items)) {
         pl.sendToast("集市", "§c物品购买失败：已下线");
         return browseItems(pl);
     }
-    let canBuyMax = Math.round(eco.get(pl) / items[guid].price);
+    let canBuyMax = Math.round(eco.get(pl) / items[uuid].price);
     if (canBuyMax <= 0) {
         pl.sendToast("集市", "§c物品购买失败：余额不足");
         return browseItems(pl);
     }
-    if (items[guid].count < canBuyMax) {
-        canBuyMax = items[guid].count;
+    if (items[uuid].count < canBuyMax) {
+        canBuyMax = items[uuid].count;
     }
     const fm = mc.newCustomForm();
     fm.setTitle("购买物品");
-    const itemNBT = NBT.parseSNBT(items[guid].snbt);
+    const itemNBT = NBT.parseSNBT(items[uuid].snbt);
     fm.addLabel(`类型：${itemNBT.getTag("Name")}`);
-    fm.addLabel(`单价：${items[guid].price}`);
-    fm.addLabel(`NBT：${items[guid].snbt}`);
-    const canBuyMin = 1 / items[guid].price;
+    fm.addLabel(`单价：${items[uuid].price}`);
+    fm.addLabel(`NBT：${items[uuid].snbt}`);
+    const canBuyMin = 1 / items[uuid].price;
     if (canBuyMin < canBuyMax)
         fm.addSlider("数量", Math.round(canBuyMin), Math.round(canBuyMax));
     else fm.addLabel(`将购买${canBuyMax}个`);
@@ -347,29 +420,29 @@ function itemBuy(pl, guid) {
     pl.sendForm(fm, (pl, args) => {
         if (!args) return browseItems(pl);
         const nowItems = db.get("items") ?? {};
-        if (!(guid in nowItems)) {
+        if (!(uuid in nowItems)) {
             pl.sendToast("集市", "§c物品购买失败：已下线");
             return browseItems(pl);
         }
         const num = args[3] ?? canBuyMax;
-        if (nowItems[guid].count < num) {
+        if (nowItems[uuid].count < num) {
             pl.sendToast("集市", "§c物品购买失败：库存不足");
             return browseItems(pl);
         }
-        const cost = Math.round(num * nowItems[guid].price);
+        const cost = Math.round(num * nowItems[uuid].price);
         if (eco.get(pl) < cost) {
             pl.sendToast("集市", "§c物品购买失败：余额不足");
             return browseItems(pl);
         }
-        const seller = nowItems[guid].seller;
+        const seller = nowItems[uuid].seller;
         const sellers = db.get("sellers") ?? {};
-        if (nowItems[guid].count <= num) {
-            delete nowItems[guid];
+        if (nowItems[uuid].count <= num) {
+            delete nowItems[uuid];
             sellers[seller].items.splice(
-                sellers[seller].items.indexOf(guid),
+                sellers[seller].items.indexOf(uuid),
                 1
             );
-        } else nowItems[guid].count -= num;
+        } else nowItems[uuid].count -= num;
         eco.reduce(pl, cost);
         const newItem = mc.newItem(itemNBT);
         pl.giveItem(newItem, num);
@@ -383,7 +456,7 @@ function itemBuy(pl, guid) {
             );
         } else
             sellers[seller].unprocessedTransactions.push({
-                price: nowItems[guid].price,
+                price: nowItems[uuid].price,
                 count: num,
                 serviceCharge: serviceCharge,
             });
@@ -393,18 +466,18 @@ function itemBuy(pl, guid) {
         return browseItems(pl);
     });
 }
-function offerProcess(pl, guid) {
+function offerProcess(pl, uuid) {
     const offers = db.get("offers") ?? {};
-    if (!(guid in offers)) {
+    if (!(uuid in offers)) {
         pl.sendToast("集市", "§c报价处理失败：已下线");
         return browseOffers(pl);
     }
     const nbtData = {
-        Name: new NbtString(offers[guid].type),
-        Damage: new NbtShort(offers[guid].data),
+        Name: new NbtString(offers[uuid].type),
+        Damage: new NbtShort(offers[uuid].data),
         Count: new NbtByte(1),
     };
-    if (offers[guid].ench) nbtData.ench = new NbtCompound(offers[guid].ench);
+    if (offers[uuid].ench) nbtData.ench = new NbtCompound(offers[uuid].ench);
     const nbt = new NbtCompound(nbtData);
     const item = mc.newItem(nbt);
     let itemCount = 0;
@@ -416,25 +489,25 @@ function offerProcess(pl, guid) {
         pl.sendToast("集市", "§c报价处理失败：物品不足");
         return browseOffers(pl);
     }
-    if (itemCount > offers[guid].count) {
-        itemCount = offers[guid].count;
+    if (itemCount > offers[uuid].count) {
+        itemCount = offers[uuid].count;
     }
     const fm = mc.newCustomForm();
     fm.setTitle("报价处理");
-    fm.addLabel(`类型：${offers[guid].type}`);
-    fm.addLabel(`单价：${offers[guid].price}/个`);
+    fm.addLabel(`类型：${offers[uuid].type}`);
+    fm.addLabel(`单价：${offers[uuid].price}/个`);
     fm.addLabel(`税率：${serviceCharge * 100}％`);
     if (itemCount > 1) fm.addSlider("数量", 1, itemCount);
     else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return browseOffers(pl);
         const nowOffers = db.get("offers") ?? {};
-        if (!(guid in nowOffers)) {
+        if (!(uuid in nowOffers)) {
             pl.sendToast("集市", "§c报价处理失败：已下线");
             return browseOffers(pl);
         }
         const num = args[3] ?? 1;
-        if (nowOffers[guid].count < num) num = nowOffers[guid].count;
+        if (nowOffers[uuid].count < num) num = nowOffers[uuid].count;
         let itemCount = 0;
         const invItems = pl.getInventory().getAllItems();
         for (const invItem of invItems) {
@@ -445,15 +518,15 @@ function offerProcess(pl, guid) {
             pl.sendToast("集市", "§c报价处理失败：物品不足");
             return browseOffers(pl);
         }
-        const seller = nowOffers[guid].seller;
+        const seller = nowOffers[uuid].seller;
         const sellers = db.get("sellers") ?? {};
-        if (nowOffers[guid].count <= num) {
-            delete nowOffers[guid];
+        if (nowOffers[uuid].count <= num) {
+            delete nowOffers[uuid];
             sellers[seller].offers.splice(
-                sellers[seller].offers.indexOf(guid),
+                sellers[seller].offers.indexOf(uuid),
                 1
             );
-        } else nowOffers[guid].count -= num;
+        } else nowOffers[uuid].count -= num;
         let buyCount = num;
         for (const invItem of invItems) {
             if (buyCount <= 0) break;
@@ -466,7 +539,7 @@ function offerProcess(pl, guid) {
             pl.refreshItems();
         }
         const get = Math.round(
-            num * nowOffers[guid].price * (1 - serviceCharge)
+            num * nowOffers[uuid].price * (1 - serviceCharge)
         );
         eco.add(pl, get);
         const sellerObj = mc.getPlayer(seller);
@@ -551,8 +624,8 @@ function itemUpload(pl, args = [0, "", 1]) {
             return itemUpload(pl, args);
         }
         const items = db.get("items") ?? {};
-        const guid = system.randomGuid();
-        items[guid] = {
+        const uuid = system.randomGuid();
+        items[uuid] = {
             snbt: itemData[args[0]].item.getNbt().toSNBT(),
             count: num,
             price: Number(args[1]),
@@ -576,7 +649,7 @@ function itemUpload(pl, args = [0, "", 1]) {
         }
         pl.refreshItems();
         const sellers = db.get("sellers") ?? {};
-        sellers[pl.xuid].items.push(guid);
+        sellers[pl.xuid].items.push(uuid);
         db.set("items", items);
         db.set("sellers", sellers);
         pl.sendToast("集市", "物品上架成功");
@@ -619,8 +692,8 @@ function offerCreate(pl, args = ["", "0", "", "", "", 0]) {
             return offerCreate(pl, args);
         }
         const offers = db.get("offers") ?? {};
-        const guid = system.randomGuid();
-        offers[guid] = {
+        const uuid = system.randomGuid();
+        offers[uuid] = {
             type: args[0],
             data: Number(args[1]),
             count: Number(args[2]),
@@ -628,16 +701,16 @@ function offerCreate(pl, args = ["", "0", "", "", "", 0]) {
             seller: pl.xuid,
         };
         if (args[4]) {
-            offers[guid].ench = {};
+            offers[uuid].ench = {};
             const dt1 = args[4].split(/,[\s]?/);
             for (const dat of dt1) {
                 const dt2 = dat.split(":");
-                offers[guid].ench[dt2[0]] = dt2[1];
+                offers[uuid].ench[dt2[0]] = dt2[1];
             }
         }
         db.set("offers", offers);
         const sellers = db.get("sellers") ?? {};
-        sellers[pl.xuid].offers.push(guid);
+        sellers[pl.xuid].offers.push(uuid);
         db.set("sellers", sellers);
         eco.reduce(pl, args[2] * args[3]);
         pl.sendToast("集市", "报价创建成功");
@@ -645,9 +718,9 @@ function offerCreate(pl, args = ["", "0", "", "", "", 0]) {
     });
 }
 /*
-function itemEdit(pl, guid) {
+function itemEdit(pl, uuid) {
     const items = db.get("items") ?? {};
-    if (!(guid in items)) {
+    if (!(uuid in items)) {
         pl.sendToast("集市", "§c物品编辑失败：已下线");
         return itemsManagement(pl);
     }
@@ -658,9 +731,9 @@ function itemEdit(pl, guid) {
         return itemsManagement(pl);
     });
 }
-function offerEdit(pl, guid) {
+function offerEdit(pl, uuid) {
     const offers = db.get("offers") ?? {};
-    if (!(guid in offers)) {
+    if (!(uuid in offers)) {
         pl.sendToast("集市", "§c报价编辑失败：已下线");
         return offersManagement(pl);
     }
