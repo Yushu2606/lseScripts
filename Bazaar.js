@@ -354,7 +354,7 @@ function itemsManagement(pl) {
     for (const uuid of sellers[pl.xuid].items) {
         const newItem = mc.newItem(NBT.parseSNBT(items[uuid].snbt));
         fm.addButton(
-            `${newItem.name}（${newItem.type} ${newItem.aux}）*${item.count}\n${item.price}${eco.name}/个`
+            `${newItem.name}（${newItem.type} ${newItem.aux}）*${items[uuid].count}\n${items[uuid].price}${eco.name}/个`
         );
     }
     pl.sendForm(fm, (pl, arg) => {
@@ -384,7 +384,7 @@ function offersManagement(pl) {
         const nbt = new NbtCompound(nbtData);
         const item = mc.newItem(nbt);
         fm.addButton(
-            `${item.name}（${item.type} ${item.aux}）*${offer.count}\n${offer.price}${eco.name}/个`
+            `${item.name}（${item.type} ${item.aux}）*${offers[uuid].count}\n${offers[uuid].price}${eco.name}/个`
         );
     }
     pl.sendForm(fm, (pl, arg) => {
