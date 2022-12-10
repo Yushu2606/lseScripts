@@ -72,7 +72,7 @@ let db = new KVDatabase("plugins/Bazaar/data");
 // For compatibility
 {
     const keys = db.listKey();
-    if (!keys.items || !keys.offers) {
+    if (keys.indexOf("items") < 0 && keys.indexOf("offers") < 0) {
         db.close();
         File.rename("plugins/Bazaar/data", "plugins/Bazaar/data_v1");
         db = new KVDatabase("plugins/Bazaar/data");
@@ -216,20 +216,12 @@ mc.listen("onJoin", (pl) => {
         return;
     }
     for (const ut of sellers[pl.xuid].unprocessedTransactions) {
-        if (ut.item) {
-            const nbtData = {
-                Name: new NbtString(offers[uuid].type),
-                Damage: new NbtShort(offers[uuid].data),
-                Count: new NbtByte(1),
-            };
-            if (offers[uuid].ench)
-                nbtData.ench = new NbtCompound(offers[uuid].ench);
-            const nbt = new NbtCompound(nbtData);
-            const item = mc.newItem(nbt);
+        if (ut.snbt) {
+            const item = mc.newItem(NBT.parseSNBT(ut.snbt));
             pl.giveItem(item, ut.count);
             pl.sendToast(
                 "集市",
-                `报价被处理（您获得了${ut.item.name}*${ut.count}）`
+                `报价被处理（您获得了${item.name}*${ut.count}）`
             );
         }
         if (ut.price) {
@@ -358,7 +350,7 @@ function itemsManagement(pl) {
             case 0:
                 return itemUpload(pl);
             default:
-                return itemsManagement(pl); // itemEdit(pl, sellers[pl.xuid].items[arg - 1]);
+                return itemTakedown(pl, sellers[pl.xuid].items[arg - 1]);
         }
     });
 }
@@ -378,7 +370,7 @@ function offersManagement(pl) {
             case 0:
                 return offerCreate(pl);
             default:
-                return offersManagement(pl); // offerEdit(pl, sellers[pl.xuid].offers[arg - 1]);
+                return offerWithdrawal(pl, sellers[pl.xuid].offers[arg - 1]);
         }
     });
 }
@@ -405,7 +397,7 @@ function itemBuy(pl, uuid) {
     const canBuyMin = 1 / items[uuid].price;
     if (canBuyMin < canBuyMax)
         fm.addSlider("数量", Math.round(canBuyMin), Math.round(canBuyMax));
-    else fm.addLabel(`将购买${canBuyMax}个`);
+    else fm.addLabel(`数量：${canBuyMax}`);
     const tag = itemNBT.getTag("tag");
     const enchData = tag ? tag.getData("ench") : undefined;
     if (enchData) {
@@ -424,7 +416,7 @@ function itemBuy(pl, uuid) {
             pl.sendToast("集市", "§c物品购买失败：已下线");
             return browseItems(pl);
         }
-        const num = args[3] ?? canBuyMax;
+        const num = Number(args[3]) ?? canBuyMax;
         if (nowItems[uuid].count < num) {
             pl.sendToast("集市", "§c物品购买失败：库存不足");
             return browseItems(pl);
@@ -506,8 +498,11 @@ function offerProcess(pl, uuid) {
             pl.sendToast("集市", "§c报价处理失败：已下线");
             return browseOffers(pl);
         }
-        const num = args[3] ?? 1;
-        if (nowOffers[uuid].count < num) num = nowOffers[uuid].count;
+        const num = Number(args[3]) ?? 1;
+        if (nowOffers[uuid].count < num) {
+            pl.sendToast("集市", "§c报价处理失败：报价不足");
+            return browseOffers(pl);
+        }
         let itemCount = 0;
         const invItems = pl.getInventory().getAllItems();
         for (const invItem of invItems) {
@@ -551,7 +546,7 @@ function offerProcess(pl, uuid) {
             );
         } else
             sellers[seller].unprocessedTransactions.push({
-                item: nbt.toSNBT(),
+                snbt: nbt.toSNBT(),
                 count: num,
                 serviceCharge: serviceCharge,
             });
@@ -605,6 +600,7 @@ function itemUpload(pl, args = [0, "", 1]) {
     fm.addInput("价格", "正实型", args[1]);
     if (max < 2) fm.addLabel("数量：1");
     else fm.addSlider("数量", 1, max, 1, args[2]);
+    fm.addLabel(`税率：${serviceCharge * 100}％`);
     pl.sendForm(fm, (pl, args) => {
         if (!args) return itemsManagement(pl);
         if (isNaN(args[1]) || args[1] < 0) {
@@ -717,31 +713,70 @@ function offerCreate(pl, args = ["", "0", "", "", "", 0]) {
         return offerCreate(pl);
     });
 }
-/*
-function itemEdit(pl, uuid) {
+function itemTakedown(pl, uuid) {
     const items = db.get("items") ?? {};
     if (!(uuid in items)) {
-        pl.sendToast("集市", "§c物品编辑失败：已下线");
+        pl.sendToast("集市", "§c物品下架失败：已下线");
         return itemsManagement(pl);
     }
-    const fm = mc.newCustomForm();
-    // TODO
-    fm.addLabel("未完成，尽请期待！");
-    pl.sendForm(fm, (pl, args) => {
-        return itemsManagement(pl);
-    });
+    pl.sendModalForm(
+        "下架物品",
+        "是否下架本物品",
+        "确定",
+        "返回",
+        (pl, arg) => {
+            if (!arg) return itemsManagement(pl);
+            const nowItems = db.get("items") ?? {};
+            if (!(uuid in nowItems)) {
+                pl.sendToast("集市", "§c物品下架失败：已下线");
+                return itemsManagement(pl);
+            }
+            const sellers = db.get("sellers") ?? {};
+            sellers[pl.xuid].items.splice(
+                sellers[pl.xuid].items.indexOf(uuid),
+                1
+            );
+            pl.giveItem(
+                mc.newItem(NBT.parseSNBT(nowItems[uuid].snbt)),
+                nowItems[uuid].count
+            );
+            delete nowItems[uuid];
+            db.set("sellers", sellers);
+            db.set("items", nowItems);
+            pl.sendToast("集市", "物品下架成功");
+            return itemsManagement(pl);
+        }
+    );
 }
-function offerEdit(pl, uuid) {
+function offerWithdrawal(pl, uuid) {
     const offers = db.get("offers") ?? {};
     if (!(uuid in offers)) {
-        pl.sendToast("集市", "§c报价编辑失败：已下线");
+        pl.sendToast("集市", "§c报价撤回失败：已下线");
         return offersManagement(pl);
     }
-    const fm = mc.newCustomForm();
-    // TODO
-    fm.addLabel("未完成，尽请期待！");
-    pl.sendForm(fm, (pl, args) => {
-        return offersManagement(pl);
-    });
+    pl.sendModalForm(
+        "撤回报价",
+        "是否撤回本报价",
+        "确定",
+        "返回",
+        (pl, arg) => {
+            if (!arg) return offersManagement(pl);
+            const nowOffers = db.get("offers") ?? {};
+            if (!(uuid in nowOffers)) {
+                pl.sendToast("集市", "§c报价下架失败：已下线");
+                return offersManagement(pl);
+            }
+            const sellers = db.get("sellers") ?? {};
+            sellers[pl.xuid].offers.splice(
+                sellers[pl.xuid].offers.indexOf(uuid),
+                1
+            );
+            eco.add(pl, nowOffers[uuid].price * nowOffers[uuid].count);
+            delete nowOffers[uuid];
+            db.set("sellers", sellers);
+            db.set("offers", nowOffers);
+            pl.sendToast("集市", "报价撤回成功");
+            return offersManagement(pl);
+        }
+    );
 }
-*/
