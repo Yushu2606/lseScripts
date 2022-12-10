@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Bazaar", "集市", [2, 0, 0]);
+ll.registerPlugin("Bazaar", "集市", [2, 0, 1]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
@@ -89,7 +89,7 @@ let db = new KVDatabase("plugins/Bazaar/data");
             for (const item of Object.values(shop.items)) {
                 items[item.guid] = {
                     snbt: item.snbt,
-                    count: NBT.parseSNBT(item.snbt).getTag("Count"),
+                    count: NBT.parseSNBT(item.snbt).getData("Count"),
                     price: item.price,
                     seller: key,
                 };
