@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("CarryContainer", "搬运容器", [1, 0, 7]);
+ll.registerPlugin("CarryContainer", "搬运容器", [1, 0, 8]);
 
 const db = new KVDatabase("plugins/CarryContainer/data");
 mc.listen("onOpenContainer", (player, block) => {
