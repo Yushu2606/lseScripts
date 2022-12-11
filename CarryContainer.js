@@ -17,7 +17,7 @@ English:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 中文：
-    搬起容器
+    搬运容器
     版权所有 © 2022  星梦喵吖 starsdream00@icloud.com
     本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
     或（您选择的）任何后来的版本重新发布和/或修改它。
@@ -34,29 +34,28 @@ English:
 ll.registerPlugin("CarryContainer", "搬运容器", [1, 0, 8]);
 
 const db = new KVDatabase("plugins/CarryContainer/data");
-mc.listen("onOpenContainer", (player, block) => {
-    const container = block.getContainer();
-    if (
-        !player.sneaking ||
-        !player.getHand().isNull() ||
-        block.type.match("shulker_box") ||
-        !container ||
-        container.size > 32
-    )
-        return;
-    if (db.get(player.xuid)) return;
-    db.set(player.xuid, {
-        block: block.getNbt().toSNBT(),
-        blockEntity: block.getBlockEntity().getNbt().toSNBT(),
-        name: block.name,
-    });
-    container.removeAllItems();
-    mc.setBlock(block.pos, "minecraft:air");
-    return false;
-});
 mc.listen("onUseItemOn", (player, item, block, side) => {
     const container = db.get(player.xuid);
-    if (!item.isNull() || !container) return;
+    if (!container) {
+        if (!block.hasContainer()) return;
+        const container = block.getContainer();
+        if (
+            !player.sneaking ||
+            !player.getHand().isNull() ||
+            block.type.match("shulker_box") ||
+            container.size > 32
+        )
+            return;
+        db.set(player.xuid, {
+            block: block.getNbt().toSNBT(),
+            blockEntity: block.getBlockEntity().getNbt().toSNBT(),
+            name: block.name,
+        });
+        container.removeAllItems();
+        mc.setBlock(block.pos, "minecraft:air");
+        return false;
+    }
+    if (!item.isNull()) return;
     const pos = mc.newIntPos(
         block.pos.x + (side == 5 ? 1 : side == 4 ? -1 : 0),
         block.pos.y + (side == 1 ? 1 : side == 0 ? -1 : 0),
