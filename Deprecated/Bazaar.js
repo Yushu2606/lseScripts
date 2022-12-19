@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Bazaar", "物品集市", [1, 2, 3]);
+ll.registerPlugin("Bazaar", "物品集市", [1, 2, 4]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
@@ -140,8 +140,8 @@ function createShop(pl) {
                 currencyType == "exp" ? "级经验" : eco.name
             }`
         );
-    fm.addInput("店铺名称", "字符串（可空）");
-    fm.addInput("店铺简介", "字符串（可空）");
+    fm.addInput("名称", "字符串（可空）");
+    fm.addInput("简介", "字符串（可空）");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return main(pl);
         if (eco.get(pl) < initialFunding) {
@@ -219,18 +219,6 @@ function itemList(pl, owner) {
             pl.tell(`§c${item.name}§r购买失败：余额不足`);
             return itemList(pl, owner);
         }
-        if (
-            !pl
-                .getInventory()
-                .hasRoomFor(
-                    mc.newItem(
-                        NBT.parseSNBT(item.snbt).setByte("Count", canBuyMin)
-                    )
-                )
-        ) {
-            pl.tell(`§c${item.name}§r购买失败：空间不足`);
-            return itemList(pl, owner);
-        }
         itemBuy(pl, owner, item);
     });
 }
@@ -238,8 +226,8 @@ function shopInfo(pl) {
     const fm = mc.newCustomForm();
     fm.setTitle("信息设置");
     const shop = db.get(pl.xuid);
-    fm.addInput("店铺名称", "字符串（可空）", shop.name);
-    fm.addInput("店铺简介", "字符串（可空）", shop.intro);
+    fm.addInput("名称", "字符串（可空）", shop.name);
+    fm.addInput("简介", "字符串（可空）", shop.intro);
     pl.sendForm(fm, (pl, args) => {
         if (!args) return shopManagement(pl);
         shop.name = args[0];
@@ -311,16 +299,11 @@ function shopHistroy(pl) {
 function itemBuy(pl, owner, item) {
     const fm = mc.newCustomForm();
     fm.setTitle("购买确认");
-    fm.addLabel(`物品名：${item.name}`);
+    fm.addLabel(`名称：${item.name}`);
     fm.addLabel(`NBT：${item.snbt}`);
     fm.addLabel(`价格：${item.price}${eco.name}/个`);
     const count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
-    if (count > 1)
-        fm.addSlider(
-            "选择购买数量",
-            Math.round(1 / item.price),
-            Math.round(eco.get(pl) / item.price)
-        );
+    if (count > 1) fm.addInput("数量", "正整形");
     else fm.addLabel("将购买1个");
     const itemNBT = NBT.parseSNBT(item.snbt);
     const tag = itemNBT.getTag("tag");
@@ -426,6 +409,14 @@ function itemBuy(pl, owner, item) {
     pl.sendForm(fm, (pl, args) => {
         if (!args) return itemList(pl, owner);
         const shop = db.get(owner);
+        if (isNaN(args[3]))
+            return pl.tell(
+                `§c${item.name}§r*${num}购买失败：数量输入错误（非数字）`
+            );
+        if (args[3] <= 0)
+            return pl.tell(
+                `§c${item.name}§r*${num}购买失败：数量输入错误（非正数）`
+            );
         const num = args[3] ?? 1;
         if (!shop.items[item.guid])
             return pl.tell(`§c${item.name}§r*${num}购买失败：已被买走`);
@@ -437,8 +428,6 @@ function itemBuy(pl, owner, item) {
         if (cost > eco.get(pl))
             return pl.tell(`§c${item.name}§r*${num}购买失败：余额不足`);
         const newItem = mc.newItem(itemNBT.setByte("Count", num));
-        if (!pl.getInventory().hasRoomFor(newItem))
-            return pl.tell(`§c${item.name}§r*${num}购买失败：空间不足`);
         const history = {
             time: system.getTimeStr(),
             buyer: pl.xuid,
@@ -473,7 +462,7 @@ function itemUpload(pl, itemsmsg, items) {
     fm.setTitle("上架物品");
     fm.addDropdown("物品", itemsmsg);
     fm.addInput("物品名称", "字符串（可空）");
-    fm.addInput("物品单价", "数字");
+    fm.addInput("物品单价", "正实型");
     fm.addSlider("上架数量", 1, 64);
     pl.sendForm(fm, (pl, args) => {
         if (!args) return shopItemsManagement(pl);
@@ -520,10 +509,10 @@ function itemManagement(pl, guid) {
         return shopItemsManagement(pl);
     }
     fm.setTitle("编辑物品");
-    fm.addInput("物品名称", "字符串（可空）", item.name);
-    fm.addInput("物品价格", "数字（可空）", item.price);
+    fm.addInput("名称", "字符串（可空）", item.name);
+    fm.addInput("价格", "正实型（可空）", item.price);
     const count = Number(NBT.parseSNBT(item.snbt).getTag("Count"));
-    fm.addSlider("上架数量", 0, count, 1, count);
+    fm.addSlider("数量", 0, count, 1, count);
     pl.sendForm(fm, (pl, args) => {
         if (!args) return shopItemsManagement(pl);
         const item = db.get(pl.xuid).items[guid];
@@ -555,10 +544,6 @@ function itemManagement(pl, guid) {
         const wbd = args[2] <= 0;
         if (args[2] != count) {
             const it = mc.newItem(itemNBT.setByte("Count", count - args[2]));
-            if (!pl.getInventory().hasRoomFor(it)) {
-                pl.tell(`§c物品${args[0]}§r*${args[2]}修改失败：空间不足`);
-                return shopItemsManagement(pl);
-            }
             if (wbd) delete shop.items[item.guid];
             else
                 shop.items[item.guid].snbt = itemNBT
