@@ -1,6 +1,6 @@
 /*
 English:
-    NameInfo
+    MessageBubble
     Copyright (C) 2022  StarsDream00 starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@ English:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 中文：
-    名称信息
+    消息气泡
     版权所有 © 2022  星梦喵吖 starsdream00@icloud.com
     本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
     或（您选择的）任何后来的版本重新发布和/或修改它。
@@ -31,39 +31,29 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("NameInfo", "名称信息", [1, 0, 0]);
+ll.registerPlugin("MessageBubble", "消息气泡", [1, 0, 0]);
 
 const msgs = {};
-mc.listen("onTick", () => {
-    for (const pl of mc.getOnlinePlayers()) {
-        if (!pl.isLoading) continue;
-        let strOfMsgs = "";
-        for (const msg of msgs[pl.xuid] ?? [])
-            strOfMsgs += `${msg[0].h}:${msg[0].m < 10 ? 0 : ""}${msg[0].m} ${
-                msg[1]
-            }§r\n`;
-        let inputMode = "未知";
-        switch (pl.getDevice().inputMode) {
-            case 1:
-                inputMode = "键鼠";
-                break;
-            case 2:
-                inputMode = "触摸";
-                break;
-            case 3:
-                inputMode = "摇杆";
-                break;
-            case 4:
-                inputMode = "体感";
-        }
-        pl.rename(`${strOfMsgs}${inputMode} ${pl.realName}`);
-    }
-});
 mc.listen("onChat", (pl, msg) => {
     const xuid = pl.xuid;
     if (!msgs[xuid]) msgs[xuid] = [];
     msgs[xuid].push([system.getTimeObj(), msg]);
+    rename(pl, true);
     setTimeout(() => {
         msgs[xuid].shift();
+        rename(pl.xuid);
     }, 10000);
 });
+
+function rename(pl, orpl) {
+    if (!orpl) {
+        pl = mc.getPlayer(pl);
+        if (!pl) return;
+    }
+    let strOfMsgs = "";
+    for (const msg of msgs[pl.xuid] ?? [])
+        strOfMsgs += `${msg[0].h}:${msg[0].m < 10 ? 0 : ""}${msg[0].m} ${
+            msg[1]
+        }§r\n`;
+    pl.rename(`${strOfMsgs}${pl.realName}`);
+}
