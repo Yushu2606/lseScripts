@@ -427,7 +427,7 @@ function itemBuy(pl, owner, item) {
         const cost = Math.round(num * shop.items[item.guid].price);
         if (cost > eco.get(pl))
             return pl.tell(`§c${item.name}§r*${num}购买失败：余额不足`);
-        const newItem = mc.newItem(itemNBT.setByte("Count", num));
+        const newItem = mc.newItem(itemNBT);
         const history = {
             time: system.getTimeStr(),
             buyer: pl.xuid,
@@ -441,7 +441,7 @@ function itemBuy(pl, owner, item) {
                 .setByte("Count", count - num)
                 .toSNBT();
         eco.reduce(pl, cost);
-        pl.giveItem(newItem);
+        pl.giveItem(newItem, num);
         const ownerpl = mc.getPlayer(owner);
         if (ownerpl) {
             const get = Math.round(cost * (1 - serviceCharge));
@@ -543,13 +543,13 @@ function itemManagement(pl, guid) {
         shop.items[item.guid].price = args[1] ?? item.price;
         const wbd = args[2] <= 0;
         if (args[2] != count) {
-            const it = mc.newItem(itemNBT.setByte("Count", count - args[2]));
+            const it = mc.newItem(itemNBT);
             if (wbd) delete shop.items[item.guid];
             else
                 shop.items[item.guid].snbt = itemNBT
                     .setByte("Count", args[2])
                     .toSNBT();
-            pl.giveItem(it);
+            pl.giveItem(it, count - args[2]);
         }
         db.set(pl.xuid, shop);
         pl.tell(

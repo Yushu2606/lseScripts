@@ -102,19 +102,13 @@ function main(pl) {
             const newitem = mc.newItem(
                 itemNbt.setByte("Count", Number(args[index]))
             );
-            if (!pl1.getInventory().hasRoomFor(newitem)) {
-                pl.tell(
-                    `§c物品${item.name}§r§c*${args[index]}送达失败：${pl1.realName}背包已满`
-                );
-                continue;
-            }
             if (item.count == args[index]) item.setNull();
             else
                 item.setNbt(
                     itemNbt.setByte("Count", Number(item.count - args[index]))
                 );
             pl.refreshItems();
-            pl1.giveItem(newitem);
+            pl1.giveItem(newitem, Number(args[index]));
             sendItems.push({ name: item.name, count: args[index] });
         }
         if (sendItems.length <= 0) return;
