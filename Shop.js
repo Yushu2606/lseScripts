@@ -230,7 +230,7 @@ function recycleShop(pl, shop, shopLink) {
         let count = 0;
         const item = itemData.nbt
             ? mc.newItem(NBT.parseSNBT(itemData.nbt))
-            : mc.newItem(itemData.id, Number(num));
+            : mc.newItem(itemData.id, 1);
         if (!itemData.nbt) {
             if (itemData.dataValues) item.setAux(itemData.dataValues);
             if (itemData.enchantments) {
