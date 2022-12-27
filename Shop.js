@@ -158,36 +158,38 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
             pl.tell(`§c物品${itemData.name}*${num}购买失败：余额不足`);
             return sellShop(pl, shopLink.pop(), shopLink);
         }
-        const item = mc.newItem(itemData.id, Number(num));
-        if (itemData.dataValues) item.setAux(itemData.dataValues);
-        if (itemData.enchantments) {
-            const ench = new NbtList();
-            for (const enchantment in itemData.enchantments) {
-                ench.addTag(
-                    new NbtCompound({
-                        id: new NbtInt(Number(enchantment.id)),
-                        lvl: new NbtInt(Number(enchantment.lvl)),
-                    })
+        const item = itemData.nbt
+            ? mc.newItem(NBT.parseSNBT(itemData.nbt))
+            : mc.newItem(itemData.id, Number(num));
+        if (!itemData.nbt) {
+            if (itemData.dataValues) item.setAux(itemData.dataValues);
+            if (itemData.enchantments) {
+                const ench = new NbtList();
+                for (const enchantment in itemData.enchantments) {
+                    ench.addTag(
+                        new NbtCompound({
+                            id: new NbtInt(Number(enchantment.id)),
+                            lvl: new NbtInt(Number(enchantment.lvl)),
+                        })
+                    );
+                }
+                const nbt = item.getNbt();
+                const tag = nbt.getTag("tag");
+                item.setNbt(
+                    nbt.setTag(
+                        "tag",
+                        tag
+                            ? tag.setTag("ench", ench)
+                            : new NbtCompound({
+                                  ench: ench,
+                              })
+                    )
                 );
             }
-            const nbt = item.getNbt();
-            const tag = nbt.getTag("tag");
-            item.setNbt(
-                nbt.setTag(
-                    "tag",
-                    tag
-                        ? tag.setTag("ench", ench)
-                        : new NbtCompound({
-                              ench: ench,
-                          })
-                )
-            );
         }
         eco.reduce(pl, Math.round(cost));
         pl.giveItem(item, Number(num));
-        pl.tell(
-            `物品${itemData.name}*${num}购买成功：花费${cost}${eco.name}`
-        );
+        pl.tell(`物品${itemData.name}*${num}购买成功：花费${cost}${eco.name}`);
         return sellShop(pl, shopLink.pop(), shopLink);
     });
 }
@@ -220,29 +222,54 @@ function recycleShop(pl, shop, shopLink) {
             }
             return main(pl);
         }
-        const item = items[arg];
-        if (item.items) {
+        const itemData = items[arg];
+        if (itemData.items) {
             shopLink.push(shop);
-            return recycleShop(pl, item, shopLink);
+            return recycleShop(pl, itemData, shopLink);
         }
         let count = 0;
+        const item = itemData.nbt
+            ? mc.newItem(NBT.parseSNBT(itemData.nbt))
+            : mc.newItem(itemData.id, Number(num));
+        if (!itemData.nbt) {
+            if (itemData.dataValues) item.setAux(itemData.dataValues);
+            if (itemData.enchantments) {
+                const ench = new NbtList();
+                for (const enchantment in itemData.enchantments) {
+                    ench.addTag(
+                        new NbtCompound({
+                            id: new NbtInt(Number(enchantment.id)),
+                            lvl: new NbtInt(Number(enchantment.lvl)),
+                        })
+                    );
+                }
+                const nbt = item.getNbt();
+                const tag = nbt.getTag("tag");
+                item.setNbt(
+                    nbt.setTag(
+                        "tag",
+                        tag
+                            ? tag.setTag("ench", ench)
+                            : new NbtCompound({
+                                  ench: ench,
+                              })
+                    )
+                );
+            }
+        }
         for (const plsItem of pl.getInventory().getAllItems()) {
-            if (
-                plsItem.type != item.id ||
-                (item.dataValues && plsItem.aux != item.dataValues)
-            )
-                continue;
+            if (!item.match(plsItem)) continue;
             count += plsItem.count;
         }
         if (count <= 0) {
-            pl.tell(`§c物品${item.name}回收失败：数量不足`);
+            pl.tell(`§c物品${itemData.name}回收失败：数量不足`);
             return recycleShop(pl, shop, shopLink);
         }
         shopLink.push(shop);
-        return recycleConfirm(pl, item, count, shopLink);
+        return recycleConfirm(pl, itemData, count, shopLink, item);
     });
 }
-function recycleConfirm(pl, itemData, count, shopLink) {
+function recycleConfirm(pl, itemData, count, shopLink, item) {
     const fm = mc.newCustomForm();
     fm.setTitle("回收物品");
     fm.addLabel(`名称：${itemData.name}`);
@@ -254,13 +281,9 @@ function recycleConfirm(pl, itemData, count, shopLink) {
         if (!args) return recycleShop(pl, shopLink.pop(), shopLink);
         const its = pl.getInventory().getAllItems();
         let count = 0;
-        for (const item of its) {
-            if (
-                item.type != itemData.id ||
-                (itemData.dataValues && item.aux != itemData.dataValues)
-            )
-                continue;
-            count += item.count;
+        for (const plsItem of its) {
+            if (!item.match(plsItem)) continue;
+            count += plsItem.count;
         }
         const num = args[3] ?? 1;
         if (count < num) {
@@ -270,16 +293,14 @@ function recycleConfirm(pl, itemData, count, shopLink) {
             return recycleShop(pl, shopLink.pop(), shopLink);
         }
         let buyCount = num;
-        for (const item of its) {
+        for (const plsItem of its) {
             if (buyCount <= 0) break;
-            if (
-                item.type != itemData.id ||
-                (itemData.dataValues && item.aux != itemData.dataValues)
-            )
-                continue;
-            if ((buyCount -= item.count) < 0)
-                item.setNbt(item.getNbt().setByte("Count", Math.abs(buyCount)));
-            else item.setNull();
+            if (!item.match(plsItem)) continue;
+            if ((buyCount -= plsItem.count) < 0)
+                plsItem.setNbt(
+                    plsItem.getNbt().setByte("Count", Math.abs(buyCount))
+                );
+            else plsItem.setNull();
             pl.refreshItems();
         }
         const add = Math.round(num * itemData.price * (1 - serviceCharge));
