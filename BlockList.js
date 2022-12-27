@@ -48,18 +48,16 @@ mc.listen("onServerStarted", () => {
     cmd.overload(["OtherAction"]);
     cmd.setCallback((_cmd, _ori, out, res) => {
         switch (res.action) {
-            case "add":
+            case "add": {
                 let has = false;
                 for (const blData of db) {
-                    if (blData.names.indexOf(res.player) < 0) continue;
+                    if (!blData.names.includes(res.player)) continue;
                     has = true;
                     break;
                 }
                 if (has) return out.error("已被封禁");
                 const pl = mc.getPlayer(res.player);
-                const clientIds = [];
                 if (pl) {
-                    clientIds.push(pl.getDevice().clientId);
                     pl.kick(
                         `§r§b很抱歉，您已§l§c被封禁§r${
                             res.message ? `\n§a信息：§r${res.message}` : ""
@@ -67,30 +65,35 @@ mc.listen("onServerStarted", () => {
                     );
                     out.success("玩家在线，已踢出");
                 }
+                const xuid = pl ? pl.xuid : data.name2xuid(res.player);
                 db.push({
                     names: [res.player],
-                    xuids: [data.name2xuid(res.player)],
-                    message: res.message,
-                    clientIds: clientIds,
+                    xuids: xuid ? [] : [xuid],
+                    message: res.message ?? "",
+                    clientIds: pl ? [] : [pl.getDevice().clientId],
                 });
                 File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
                 return out.success("封禁成功");
-            case "remove":
+            }
+            case "remove": {
+                const xuid = data.name2xuid(res.player);
                 db = db.filter((item) => {
-                    return (
-                        item.xuids.indexOf(data.name2xuid(res.player)) < 0 ||
-                        item.names.indexOf(res.player.toLowerCase()) < 0
+                    return !(
+                        item.xuids.includes(xuid) ||
+                        item.names.includes(res.player)
                     );
                 });
                 File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
                 return out.success("解禁成功");
-            case "update":
+            }
+            case "update": {
                 jsonstr = File.readFrom("blocklist.json");
                 if (!jsonstr) {
                     File.writeTo("blocklist.json", (jsonstr = "[]"));
                 }
                 db = data.parseJson(jsonstr);
                 return out.success("更新成功");
+            }
         }
     });
     cmd.setup();
@@ -99,8 +102,8 @@ mc.listen("onPreJoin", (pl) => {
     const device = pl.getDevice();
     for (const blData of db) {
         if (
-            blData.xuids.indexOf(pl.xuid) < 0 &&
-            blData.clientIds.indexOf(device.clientId) < 0
+            !blData.xuids.includes(pl.xuid) &&
+            !blData.clientIds.includes(device.clientId)
         )
             continue;
         pl.kick(
@@ -110,12 +113,11 @@ mc.listen("onPreJoin", (pl) => {
         );
         fastLog(`${pl.realName}在尝试进入时被阻止`);
         const cache = blData;
-        if (blData.names.indexOf(pl.realName) < 0)
-            cache.names.push(pl.realName);
-        if (blData.xuids.indexOf(pl.xuid) < 0) cache.xuids.push(pl.xuid);
-        if (blData.clientIds.indexOf(device.clientId) < 0)
+        if (!blData.names.includes(pl.realName)) cache.names.push(pl.realName);
+        if (!blData.xuids.includes(pl.xuid)) cache.xuids.push(pl.xuid);
+        if (!blData.clientIds.includes(device.clientId))
             cache.clientIds.push(device.clientId);
-        db.splice(db.indexOf(blData), 1, cache);
+        db[db.indexOf(blData)] = cache;
         File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
         break;
     }

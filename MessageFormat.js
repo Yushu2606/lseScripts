@@ -1,6 +1,6 @@
 /*
 English:
-    ChatFormat
+    MessageFormat
     Copyright (C) 2022  StarsDream00 starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -31,18 +31,33 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("ChatFormat", "消息格式化", [1, 0, 0]);
+ll.registerPlugin("MessageFormat", "消息格式化", [1, 0, 0]);
 
-const rtnMsgs = {};
+const msgs = {};
 mc.listen("onChat", (pl, msg) => {
     const time = system.getTimeObj();
-    const xuid = pl.xuid;
-    if (!rtnMsgs[xuid]) rtnMsgs[xuid] = [];
-    if (rtnMsgs[xuid].indexOf(msg) > 0) return false;
-    rtnMsgs[xuid].unshift(msg);
     mc.broadcast(
         `${time.h}:${time.m < 10 ? 0 : ""}${time.m} ${pl.realName}：${msg}`
     );
-    setTimeout(() => rtnMsgs[xuid].pop(), 10000);
-    return false;
+    const xuid = pl.xuid;
+    if (!msgs[xuid]) msgs[xuid] = [];
+    msgs[xuid].push([time, msg]);
+    rename(pl, true);
+    setTimeout(() => {
+        msgs[xuid].shift();
+        rename(xuid);
+    }, 10000);
 });
+
+function rename(pl, isObj) {
+    if (!isObj) {
+        pl = mc.getPlayer(pl);
+        if (!pl) return;
+    }
+    let strOfMsgs = "";
+    for (const msg of msgs[pl.xuid] ?? [])
+        strOfMsgs += `${msg[0].h}:${msg[0].m < 10 ? 0 : ""}${msg[0].m} ${
+            msg[1]
+        }§r\n`;
+    pl.rename(`${strOfMsgs}${pl.realName}`);
+}

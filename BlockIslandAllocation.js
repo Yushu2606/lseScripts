@@ -34,7 +34,7 @@ English:
 ll.registerPlugin("BlockIslandAllocation", "岛屿分配系统", [1, 0, 0]);
 
 const db = new KVDatabase("plugins/BlockIslandAllocation/data");
-if (db.listKey().indexOf("spawn") < 0)
+if (!db.get("spawn"))
     db.set("spawn", { version: "spawn", pos: { x: 0, y: -64, z: 0 } });
 mc.listen("onPlaceBlock", (pl, bl) => {
     if (
@@ -67,7 +67,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
     return re;
 });
 function sendInit(xuid) {
-    if (db.listKey().indexOf(xuid) >= 0) return;
+    if (db.get(xuid)) return;
     const pl = mc.getPlayer(xuid);
     const fm = mc.newSimpleForm();
     fm.setTitle("开始菜单");
