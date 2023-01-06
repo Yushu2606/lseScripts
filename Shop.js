@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Shop", "商店", [1, 5, 0]);
+ll.registerPlugin("Shop", "商店", [1, 5, 1]);
 
 const config = new JsonConfigFile("plugins/Shop/config.json");
 const command = config.init("command", "shop");
@@ -82,22 +82,26 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 function main(pl) {
-    const fm = mc.newSimpleForm();
-    fm.setTitle("商店菜单");
-    fm.addButton("购买");
-    fm.addButton("回收");
-    pl.sendForm(fm, (pl, e) => {
-        switch (e) {
-            case 0:
-                return sellShop(pl, sell, []);
-            case 1:
-                return recycleShop(pl, recycle, []);
+    pl.sendForm(
+        mc
+            .newSimpleForm()
+            .setTitle("商店菜单")
+            .addButton("购买")
+            .addButton("回收"),
+        (pl, e) => {
+            switch (e) {
+                case 0:
+                    return sellShop(pl, sell, []);
+                case 1:
+                    return recycleShop(pl, recycle, []);
+            }
         }
-    });
+    );
 }
 function sellShop(pl, shop, shopLink) {
-    const fm = mc.newSimpleForm();
-    fm.setTitle(`购买商店 - ${shopLink.length <= 0 ? "主商店" : shop.name}`);
+    const fm = mc
+        .newSimpleForm()
+        .setTitle(`购买商店 - ${shopLink.length <= 0 ? "主商店" : shop.name}`);
     const items = shopLink.length <= 0 ? shop : shop.items;
     for (const item of items) {
         if (item.items) {
@@ -139,19 +143,19 @@ function sellShop(pl, shop, shopLink) {
     });
 }
 function sellConfirm(pl, itemData, maxNum, shopLink) {
-    const fm = mc.newCustomForm();
-    fm.setTitle("购买物品");
-    fm.addLabel(`名称：${itemData.name}`);
-    fm.addLabel(`单价：${itemData.price}`);
-    if (maxNum > 1)
-        fm.addSlider(
-            "数量",
-            Math.round(1 / itemData.price),
-            Math.round(maxNum)
-        );
+    const fm = mc
+        .newCustomForm()
+        .setTitle("购买物品")
+        .addLabel(`名称：${itemData.name}`)
+        .addLabel(`单价：${itemData.price}`);
+    if (maxNum > 1) fm.addInput("数量", `您最多可购买${Math.round(maxNum)}个`);
     else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return sellShop(pl, shopLink.pop(), shopLink);
+        if (isNaN(args[2])) {
+            pl.tell(`§c物品${itemData.name}购买失败：数量有误`);
+            return sellShop(pl, shopLink.pop(), shopLink);
+        }
         const num = args[2] ?? 1;
         const cost = itemData.price * num;
         if (eco.get(pl) < cost) {
@@ -194,8 +198,9 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
     });
 }
 function recycleShop(pl, shop, shopLink) {
-    const fm = mc.newSimpleForm();
-    fm.setTitle(`回收商店 - ${shopLink.length <= 0 ? "主商店" : shop.name}`);
+    const fm = mc
+        .newSimpleForm()
+        .setTitle(`回收商店 - ${shopLink.length <= 0 ? "主商店" : shop.name}`);
     const items = shopLink.length <= 0 ? shop : shop.items;
     for (const item of items) {
         if (item.items) {
@@ -270,12 +275,13 @@ function recycleShop(pl, shop, shopLink) {
     });
 }
 function recycleConfirm(pl, itemData, count, shopLink, item) {
-    const fm = mc.newCustomForm();
-    fm.setTitle("回收物品");
-    fm.addLabel(`名称：${itemData.name}`);
-    fm.addLabel(`单价：${itemData.price}`);
-    fm.addLabel(`当前税率：${serviceCharge * 100}％`);
-    if (count > 1) fm.addSlider("数量", 1, count);
+    const fm = mc
+        .newCustomForm()
+        .setTitle("回收物品")
+        .addLabel(`名称：${itemData.name}`)
+        .addLabel(`单价：${itemData.price}`)
+        .addLabel(`当前税率：${serviceCharge * 100}％`);
+    if (count > 1) fm.addInput("数量", `您最多可购买${count}个`);
     else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return recycleShop(pl, shopLink.pop(), shopLink);
@@ -284,6 +290,10 @@ function recycleConfirm(pl, itemData, count, shopLink, item) {
         for (const plsItem of its) {
             if (!item.match(plsItem)) continue;
             count += plsItem.count;
+        }
+        if (isNaN(args[3])) {
+            pl.tell(`§c物品${itemData.name}回收失败：数量有误`);
+            return sellShop(pl, shopLink.pop(), shopLink);
         }
         const num = args[3] ?? 1;
         if (count < num) {
