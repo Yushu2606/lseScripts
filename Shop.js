@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Shop", "商店", [1, 5, 1]);
+ll.registerPlugin("Shop", "商店", [1, 5, 2]);
 
 const config = new JsonConfigFile("plugins/Shop/config.json");
 const command = config.init("command", "shop");
@@ -82,6 +82,8 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 function main(pl) {
+    if (recycle.length <= 0) return sellShop(pl, sell, []);
+    if (sell.length <= 0) return recycleShop(pl, recycle, []);
     pl.sendForm(
         mc
             .newSimpleForm()
