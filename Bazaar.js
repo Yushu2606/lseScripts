@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Bazaar", "物品集市", [1, 2, 4]);
+ll.registerPlugin("Bazaar", "物品集市", [1, 2, 6]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
@@ -409,15 +409,15 @@ function itemBuy(pl, owner, item) {
     pl.sendForm(fm, (pl, args) => {
         if (!args) return itemList(pl, owner);
         const shop = db.get(owner);
-        if (isNaN(args[3]))
+        const num = args[3] ?? 1;
+        if (isNaN(num))
             return pl.tell(
                 `§c${item.name}§r*${num}购买失败：数量输入错误（非数字）`
             );
-        if (args[3] <= 0)
+        if (num <= 0)
             return pl.tell(
                 `§c${item.name}§r*${num}购买失败：数量输入错误（非正数）`
             );
-        const num = args[3] ?? 1;
         if (!shop.items[item.guid])
             return pl.tell(`§c${item.name}§r*${num}购买失败：已被买走`);
         const itemNBT = NBT.parseSNBT(shop.items[item.guid].snbt);
@@ -441,7 +441,7 @@ function itemBuy(pl, owner, item) {
                 .setByte("Count", count - num)
                 .toSNBT();
         eco.reduce(pl, cost);
-        pl.giveItem(newItem, num);
+        pl.giveItem(newItem, Number(num));
         const ownerpl = mc.getPlayer(owner);
         if (ownerpl) {
             const get = Math.round(cost * (1 - serviceCharge));

@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Shop", "商店", [1, 5, 2]);
+ll.registerPlugin("Shop", "商店", [1, 5, 3]);
 
 const config = new JsonConfigFile("plugins/Shop/config.json");
 const command = config.init("command", "shop");
@@ -81,9 +81,11 @@ mc.listen("onServerStarted", () => {
     });
     cmd.setup();
 });
-function main(pl) {
-    if (recycle.length <= 0) return sellShop(pl, sell, []);
-    if (sell.length <= 0) return recycleShop(pl, recycle, []);
+function main(pl, isFromShop) {
+    if (!isFromShop) {
+        if (recycle.length <= 0) return sellShop(pl, sell, []);
+        if (sell.length <= 0) return recycleShop(pl, recycle, []);
+    }
     pl.sendForm(
         mc
             .newSimpleForm()
@@ -128,7 +130,7 @@ function sellShop(pl, shop, shopLink) {
             if (shopLink.length > 0) {
                 return sellShop(pl, shopLink.pop(), shopLink);
             }
-            return main(pl);
+            return main(pl, true);
         }
         const item = items[arg];
         if (item.items) {
@@ -227,7 +229,7 @@ function recycleShop(pl, shop, shopLink) {
             if (shopLink.length > 0) {
                 return recycleShop(pl, shopLink.pop(), shopLink);
             }
-            return main(pl);
+            return main(pl, true);
         }
         const itemData = items[arg];
         if (itemData.items) {
