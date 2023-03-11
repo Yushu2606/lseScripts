@@ -31,13 +31,14 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Shop", "商店", [1, 5, 3]);
+ll.registerPlugin("Shop", "商店", [1, 5, 4]);
 
 const config = new JsonConfigFile("plugins/Shop/config.json");
 const command = config.init("command", "shop");
 const serviceCharge = config.init("serviceCharge", 0.02);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
+const allowDrop = config.init("allowDrop", true);
 const eco = (() => {
     switch (currencyType) {
         case "llmoney":
@@ -194,6 +195,10 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
                     )
                 );
             }
+        }
+        if (!allowDrop && !pl.getInventory().hasRoomFor(item)) {
+            pl.tell(`§c物品${itemData.name}*${num}购买失败：空间不足`);
+            return sellShop(pl, shopLink.pop(), shopLink);
         }
         eco.reduce(pl, Math.round(cost));
         pl.giveItem(item, Number(num));
