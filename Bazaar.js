@@ -1,7 +1,7 @@
 /*
 English:
     Bazaar
-    Copyright (C) 2022  StarsDream00 starsdream00@icloud.com
+    Copyright (C) 2023  StarsDream00 starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,7 @@ English:
 
 中文：
     物品集市
-    版权所有 © 2022  星梦喵吖 starsdream00@icloud.com
+    版权所有 © 2023  星梦喵吖 starsdream00@icloud.com
     本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
     或（您选择的）任何后来的版本重新发布和/或修改它。
 
