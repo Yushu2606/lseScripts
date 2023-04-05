@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Shop", "商店", [1, 5, 4]);
+ll.registerPlugin("Shop", "商店", [1, 5, 5]);
 
 const config = new JsonConfigFile("plugins/Shop/config.json");
 const command = config.init("command", "shop");
@@ -69,10 +69,6 @@ const eco = (() => {
     }
 })();
 config.close();
-const db = new JsonConfigFile("plugins/Shop/data.json");
-const sell = db.init("sell", []);
-const recycle = db.init("recycle", []);
-db.close();
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand(command, "打开商店菜单。", PermType.Any);
     cmd.overload();
@@ -83,6 +79,10 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 function main(pl, isFromShop) {
+    const db = new JsonConfigFile("plugins/Shop/data.json");
+    const sell = db.init("sell", []);
+    const recycle = db.init("recycle", []);
+    db.close();
     if (!isFromShop) {
         if (recycle.length <= 0) return sellShop(pl, sell, []);
         if (sell.length <= 0) return recycleShop(pl, recycle, []);
@@ -171,7 +171,6 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
             ? mc.newItem(NBT.parseSNBT(itemData.nbt))
             : mc.newItem(itemData.id, Number(num));
         if (!itemData.nbt) {
-            if (itemData.dataValues) item.setAux(itemData.dataValues);
             if (itemData.enchantments) {
                 const ench = new NbtList();
                 for (const enchantment in itemData.enchantments) {
@@ -195,6 +194,7 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
                     )
                 );
             }
+            if (itemData.dataValues) item.setAux(itemData.dataValues);
         }
         if (!allowDrop && !pl.getInventory().hasRoomFor(item)) {
             pl.tell(`§c物品${itemData.name}*${num}购买失败：空间不足`);
@@ -246,7 +246,6 @@ function recycleShop(pl, shop, shopLink) {
             ? mc.newItem(NBT.parseSNBT(itemData.nbt))
             : mc.newItem(itemData.id, 1);
         if (!itemData.nbt) {
-            if (itemData.dataValues) item.setAux(itemData.dataValues);
             if (itemData.enchantments) {
                 const ench = new NbtList();
                 for (const enchantment in itemData.enchantments) {
@@ -270,6 +269,7 @@ function recycleShop(pl, shop, shopLink) {
                     )
                 );
             }
+            if (itemData.dataValues) item.setAux(itemData.dataValues);
         }
         for (const plsItem of pl.getInventory().getAllItems()) {
             if (!item.match(plsItem)) continue;
