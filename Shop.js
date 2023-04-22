@@ -119,12 +119,18 @@ function sellShop(pl, shop, shopLink) {
         }
         if (item.icon) {
             fm.addButton(
-                `${item.name}\n${item.price}${eco.name}/个`,
+                `${item.name}\n${item.price}${eco.name}/${
+                    item.num ? item.num : ""
+                }个`,
                 item.icon
             );
             continue;
         }
-        fm.addButton(`${item.name}\n${item.price}${eco.name}/个`);
+        fm.addButton(
+            `${item.name}\n${item.price}${eco.name}/${
+                item.num ? item.num : ""
+            }个`
+        );
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) {
@@ -138,7 +144,7 @@ function sellShop(pl, shop, shopLink) {
             shopLink.push(shop);
             return sellShop(pl, item, shopLink);
         }
-        const maxNum = eco.get(pl) / item.price;
+        const maxNum = (eco.get(pl) / item.price) * (item.num ? item.num : 1);
         if (maxNum <= 0) {
             pl.tell(`§c物品${item.name}购买失败：余额不足`);
             return sellShop(pl, shop, shopLink);
@@ -152,8 +158,15 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
         .newCustomForm()
         .setTitle("购买物品")
         .addLabel(`名称：${itemData.name}`)
-        .addLabel(`单价：${itemData.price}`);
-    if (maxNum > 1) fm.addInput("数量", `您最多可购买${Math.round(maxNum)}个`);
+        .addLabel(
+            `单价：${itemData.price}/${itemData.num ? itemData.num : ""}个`
+        );
+    if (itemData.num) {
+        const nums = [];
+        for (let i = item.num; i <= maxNum; i += itemData.num) nums.push(i);
+        fm.addStepSlider("数量", nums);
+    } else if (maxNum > 1)
+        fm.addInput("数量", `您最多可购买${Math.round(maxNum)}个`);
     else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return sellShop(pl, shopLink.pop(), shopLink);
@@ -162,7 +175,7 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
             return sellShop(pl, shopLink.pop(), shopLink);
         }
         const num = args[2] ?? 1;
-        const cost = itemData.price * num;
+        const cost = itemData.price * (num / (itemData.num ? itemData.num : 1));
         if (eco.get(pl) < cost) {
             pl.tell(`§c物品${itemData.name}*${num}购买失败：余额不足`);
             return sellShop(pl, shopLink.pop(), shopLink);
@@ -222,12 +235,18 @@ function recycleShop(pl, shop, shopLink) {
         }
         if (item.icon) {
             fm.addButton(
-                `${item.name}\n${item.price}${eco.name}/个`,
+                `${item.name}\n${item.price}${eco.name}/${
+                    item.num ? item.num : ""
+                }个`,
                 item.icon
             );
             continue;
         }
-        fm.addButton(`${item.name}\n${item.price}${eco.name}/个`);
+        fm.addButton(
+            `${item.name}\n${item.price}${eco.name}/${
+                item.num ? item.num : ""
+            }个`
+        );
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) {
@@ -275,7 +294,7 @@ function recycleShop(pl, shop, shopLink) {
             if (!item.match(plsItem)) continue;
             count += plsItem.count;
         }
-        if (count <= 0) {
+        if (count < itemData.num ? itemData.num : 1) {
             pl.tell(`§c物品${itemData.name}回收失败：数量不足`);
             return recycleShop(pl, shop, shopLink);
         }
@@ -288,9 +307,15 @@ function recycleConfirm(pl, itemData, count, shopLink, item) {
         .newCustomForm()
         .setTitle("回收物品")
         .addLabel(`名称：${itemData.name}`)
-        .addLabel(`单价：${itemData.price}`)
+        .addLabel(
+            `单价：${itemData.price}/${itemData.num ? itemData.num : ""}个`
+        )
         .addLabel(`当前税率：${serviceCharge * 100}％`);
-    if (count > 1) fm.addInput("数量", `您最多可购买${count}个`);
+    if (itemData.num) {
+        const nums = [];
+        for (let i = itemData.num; i <= count; i += itemData.num) nums.push(i);
+        fm.addStepSlider("数量", nums);
+    } else if (count > 1) fm.addInput("数量", `您最多可回收${count}个`);
     else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return recycleShop(pl, shopLink.pop(), shopLink);
@@ -322,7 +347,11 @@ function recycleConfirm(pl, itemData, count, shopLink, item) {
             else plsItem.setNull();
             pl.refreshItems();
         }
-        const add = Math.round(num * itemData.price * (1 - serviceCharge));
+        const add = Math.round(
+            (num / (itemData.num ? itemData.num : 1)) *
+                itemData.price *
+                (1 - serviceCharge)
+        );
         eco.add(pl, add);
         pl.tell(`物品${itemData.name}*${num}回收成功：获得${add}${eco.name}`);
         return recycleShop(pl, shopLink.pop(), shopLink);
