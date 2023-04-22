@@ -163,7 +163,7 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
         );
     if (itemData.num) {
         const nums = [];
-        for (let i = item.num; i <= maxNum; i += itemData.num) nums.push(i);
+        for (let i = itemData.num; i <= maxNum; i += itemData.num) nums.push(i);
         fm.addStepSlider("数量", nums);
     } else if (maxNum > 1)
         fm.addInput("数量", `您最多可购买${Math.round(maxNum)}个`);
