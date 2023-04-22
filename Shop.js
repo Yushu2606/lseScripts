@@ -320,7 +320,7 @@ function recycleConfirm(pl, itemData, count, shopLink, item) {
         let num = args[3] ?? (itemData.num ? 0 : 1);
         if (isNaN(num)) {
             pl.tell(`§c物品${itemData.name}回收失败：数量有误`);
-            return sellShop(pl, shopLink.pop(), shopLink);
+            return recycleShop(pl, shopLink.pop(), shopLink);
         }
         if (itemData.num) num = (num + 1) * itemData.num;
         if (count < num) {
