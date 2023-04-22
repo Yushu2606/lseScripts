@@ -165,7 +165,7 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
     else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return sellShop(pl, shopLink.pop(), shopLink);
-        let num = args[2] ?? (itemData.num ? itemData.num : 1);
+        let num = args[2] ?? (itemData.num ? 0 : 1);
         if (isNaN(num)) {
             pl.tell(`§c物品${itemData.name}购买失败：数量有误`);
             return sellShop(pl, shopLink.pop(), shopLink);
@@ -317,12 +317,12 @@ function recycleConfirm(pl, itemData, count, shopLink, item) {
             if (!item.match(plsItem)) continue;
             count += plsItem.count;
         }
-        let num = args[3] ?? (itemData.num ? itemData.num : 1);
-        if (itemData.num) num = (num + 1) * itemData.num;
+        let num = args[3] ?? (itemData.num ? 0 : 1);
         if (isNaN(num)) {
             pl.tell(`§c物品${itemData.name}回收失败：数量有误`);
             return sellShop(pl, shopLink.pop(), shopLink);
         }
+        if (itemData.num) num = (num + 1) * itemData.num;
         if (count < num) {
             pl.tell(
                 `§c物品${itemData.name}回收失败：数量不足（只有${count}个）`
