@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Shop", "商店", [1, 6, 0]);
+ll.registerPlugin("Shop", "商店", [1, 6, 1]);
 
 const config = new JsonConfigFile("plugins/Shop/config.json");
 const command = config.init("command", "shop");
@@ -69,6 +69,10 @@ const eco = (() => {
     }
 })();
 config.close();
+const db = new JsonConfigFile("plugins/Shop/data.json");
+const sell = db.init("sell", []);
+const recycle = db.init("recycle", []);
+db.close();
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand(command, "打开商店菜单。", PermType.Any);
     cmd.overload();
@@ -178,7 +182,7 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
         }
         const item = itemData.nbt
             ? mc.newItem(NBT.parseSNBT(itemData.nbt))
-            : mc.newItem(itemData.id, Number(num));
+            : mc.newItem(itemData.id, 1);
         if (!itemData.nbt) {
             if (itemData.enchantments) {
                 const ench = new NbtList();
