@@ -32,6 +32,7 @@ English:
 
 "use strict";
 ll.registerPlugin("QuitPenalty", "下线惩罚", [1, 0, 0]);
+
 const config = new JsonConfigFile("plugins/QuitPenalty/config.json");
 const pen = config.init("pen", []);
 config.close();
