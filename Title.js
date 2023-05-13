@@ -32,7 +32,7 @@ mc.listen("onServerStarted", () => {
 mc.listen("onChat", (pl, msg) => {
     const title = db.get(pl.xuid);
     if (!title) return;
-    mc.boardcast(`${title ? `[${title}}]` : ""}<${pl.realName}> ${msg}`);
+    mc.broadcast(`${title ? `[${title}}]` : ""}<${pl.realName}> ${msg}`);
     return false;
 });
 mc.listen("onJoin", (pl) => {
