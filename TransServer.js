@@ -2,7 +2,7 @@
 ll.registerPlugin("TransServer", "传送至服务器", [1, 0, 0]);
 
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand("trans", "传送玩家至指定服务器。");
+    const cmd = mc.newCommand("trans", "传送玩家至指定服务器。", PermType.Any);
     cmd.mandatory("server", ParamType.String);
     cmd.mandatory("port", ParamType.Int);
     cmd.optional("player", ParamType.Player);
