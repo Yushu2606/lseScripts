@@ -40,3 +40,4 @@ mc.listen("onJoin", (pl) => {
     if (!title) return;
     pl.rename(`${title}\n${pl.realName}`);
 });
+ll.exports((xuid) => db.get(xuid), "Title", "GetFromXuid");
