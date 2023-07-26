@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Shop", "商店", [1, 6, 1]);
+ll.registerPlugin("Shop", "商店", [1, 6, 2]);
 
 const config = new JsonConfigFile("plugins/Shop/config.json");
 const command = config.init("command", "shop");
@@ -140,11 +140,14 @@ function sellShop(pl, shop, shopLink) {
             shopLink.push(shop);
             return sellShop(pl, item, shopLink);
         }
-        const maxNum = (eco.get(pl) / item.price) * (item.num ? item.num : 1);
+        let count = eco.get(pl) / item.price;
+        if (count >= 2 ** 15) count = 2 ** 15;
+        const maxNum = count * (item.num ? item.num : 1);
         if (maxNum <= 0) {
             pl.tell(`§c物品${item.name}购买失败：余额不足`);
             return sellShop(pl, shop, shopLink);
         }
+        if (maxNum > Number.MAX_SAFE_INTEGER) maxNum = Number.MAX_SAFE_INTEGER;
         shopLink.push(shop);
         return sellConfirm(pl, item, maxNum, shopLink);
     });
@@ -253,7 +256,6 @@ function recycleShop(pl, shop, shopLink) {
             shopLink.push(shop);
             return recycleShop(pl, itemData, shopLink);
         }
-        let count = 0;
         const item = itemData.nbt
             ? mc.newItem(NBT.parseSNBT(itemData.nbt))
             : mc.newItem(itemData.id, 1);
@@ -283,6 +285,7 @@ function recycleShop(pl, shop, shopLink) {
             }
             if (itemData.dataValues) item.setAux(itemData.dataValues);
         }
+        let count = 0;
         for (const plsItem of pl.getInventory().getAllItems()) {
             if (!item.match(plsItem)) continue;
             count += plsItem.count;
