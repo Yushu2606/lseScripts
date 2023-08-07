@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Shop", "商店", [1, 6, 2]);
+ll.registerPlugin("Shop", "商店", [1, 6, 3]);
 
 const config = new JsonConfigFile("plugins/Shop/config.json");
 const command = config.init("command", "shop");
@@ -172,7 +172,7 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
     else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return sellShop(pl, shopLink.pop(), shopLink);
-        let num = args[2] ?? (itemData.num ? 0 : 1);
+        let num = args[2] ? args[2] : itemData.num ? 0 : 1;
         if (isNaN(num)) {
             pl.tell(`§c物品${itemData.name}购买失败：数量有误`);
             return sellShop(pl, shopLink.pop(), shopLink);
@@ -187,13 +187,13 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
             ? mc.newItem(NBT.parseSNBT(itemData.nbt))
             : mc.newItem(itemData.id, 1);
         if (!itemData.nbt) {
-            if (itemData.enchantments) {
+            if (itemData.enchantments && itemData.enchantments.length > 0) {
                 const ench = new NbtList();
-                for (const enchantment in itemData.enchantments) {
+                for (const enchantment of itemData.enchantments) {
                     ench.addTag(
                         new NbtCompound({
-                            id: new NbtInt(Number(enchantment.id)),
-                            lvl: new NbtInt(Number(enchantment.lvl)),
+                            id: new NbtShort(Number(enchantment.id)),
+                            lvl: new NbtShort(Number(enchantment.lvl)),
                         })
                     );
                 }
@@ -260,13 +260,13 @@ function recycleShop(pl, shop, shopLink) {
             ? mc.newItem(NBT.parseSNBT(itemData.nbt))
             : mc.newItem(itemData.id, 1);
         if (!itemData.nbt) {
-            if (itemData.enchantments) {
+            if (itemData.enchantments && itemData.enchantments.length > 0) {
                 const ench = new NbtList();
-                for (const enchantment in itemData.enchantments) {
+                for (const enchantment of itemData.enchantments) {
                     ench.addTag(
                         new NbtCompound({
-                            id: new NbtInt(Number(enchantment.id)),
-                            lvl: new NbtInt(Number(enchantment.lvl)),
+                            id: new NbtShort(Number(enchantment.id)),
+                            lvl: new NbtShort(Number(enchantment.lvl)),
                         })
                     );
                 }
@@ -324,7 +324,7 @@ function recycleConfirm(pl, itemData, count, shopLink, item) {
             if (!item.match(plsItem)) continue;
             count += plsItem.count;
         }
-        let num = args[3] ?? (itemData.num ? 0 : 1);
+        let num = args[3] ? args[3] : itemData.num ? 0 : 1;
         if (isNaN(num)) {
             pl.tell(`§c物品${itemData.name}回收失败：数量有误`);
             return recycleShop(pl, shopLink.pop(), shopLink);
