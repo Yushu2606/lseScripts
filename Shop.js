@@ -31,11 +31,10 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Shop", "商店", [1, 6, 3]);
+ll.registerPlugin("Shop", "商店", [1, 6, 4]);
 
 const config = new JsonConfigFile("plugins/Shop/config.json");
 const command = config.init("command", "shop");
-const serviceCharge = config.init("serviceCharge", 0.03125);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const allowDrop = config.init("allowDrop", true);
@@ -114,14 +113,12 @@ function sellShop(pl, shop, shopLink) {
     const items = shopLink.length > 0 ? shop.items : shop;
     for (const item of items) {
         if (item.items) {
-            fm.addButton(item.name, item.icon ? item.icon : "");
+            fm.addButton(item.name, item.icon ?? "");
             continue;
         }
         fm.addButton(
-            `${item.name}\n${item.price}${eco.name}/${
-                item.num ? item.num : ""
-            }个`,
-            item.icon ? item.icon : ""
+            `${item.name}\n${item.price}${eco.name}/${item.num ?? ""}个`,
+            item.icon ?? ""
         );
     }
     pl.sendForm(fm, (pl, arg) => {
@@ -129,9 +126,9 @@ function sellShop(pl, shop, shopLink) {
             if (shopLink.length > 0) {
                 return sellShop(pl, shopLink.pop(), shopLink);
             }
-            const db = new JsonConfigFile("plugins/Shop/data.json");
-            const recycle = db.init("recycle", []);
-            db.close();
+            const shopData = new JsonConfigFile("plugins/Shop/data.json");
+            const recycle = shopData.init("recycle", []);
+            shopData.close();
             if (recycle.length <= 0) return;
             return main(pl, true);
         }
@@ -141,8 +138,8 @@ function sellShop(pl, shop, shopLink) {
             return sellShop(pl, item, shopLink);
         }
         let count = eco.get(pl) / item.price;
-        if (count >= 2 ** 15) count = 2 ** 15;
-        const maxNum = count * (item.num ? item.num : 1);
+        if (count >= 2 ** 11) count = 2 ** 11;
+        const maxNum = item.num ? count * item.num : count;
         if (maxNum <= 0) {
             pl.sendToast("商店", "§c物品购买失败：余额不足");
             return sellShop(pl, shop, shopLink);
@@ -157,9 +154,7 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
         .newCustomForm()
         .setTitle("购买物品")
         .addLabel(`名称：${itemData.name}`)
-        .addLabel(
-            `单价：${itemData.price}/${itemData.num ? itemData.num : ""}个`
-        );
+        .addLabel(`单价：${itemData.price}/${itemData.num ?? ""}个`);
     if (itemData.num) {
         if (maxNum / itemData.num >= 2) {
             const nums = [];
@@ -167,18 +162,17 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
                 nums.push(String(i));
             fm.addStepSlider("数量", nums);
         } else fm.addLabel(`数量：${itemData.num}`);
-    } else if (maxNum > 1)
-        fm.addInput("数量", `您最多可购买${Math.round(maxNum)}个`);
+    } else if (maxNum > 1) fm.addInput("数量", `您最多可购买${maxNum}个`);
     else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return sellShop(pl, shopLink.pop(), shopLink);
-        let num = args[2] ? args[2] : itemData.num ? 0 : 1;
+        let num = args[2] ? args[2] : itemData.num ?? 1;
         if (isNaN(num)) {
             pl.sendToast("商店", "§c物品购买失败：数量有误");
             return sellShop(pl, shopLink.pop(), shopLink);
         }
         if (itemData.num) num = (num + 1) * itemData.num;
-        let cost = itemData.price * (num / (itemData.num ? itemData.num : 1));
+        let cost = Math.round(itemData.price * (num / (itemData.num ?? 1)));
         if (eco.get(pl) < cost) {
             pl.sendToast("商店", "§c物品购买失败：余额不足");
             return sellShop(pl, shopLink.pop(), shopLink);
@@ -216,7 +210,6 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
             pl.sendToast("商店", "§c物品购买失败：空间不足");
             return sellShop(pl, shopLink.pop(), shopLink);
         }
-        cost = Math.round(cost);
         eco.reduce(pl, cost);
         pl.giveItem(item, Number(num));
         pl.sendToast(
@@ -233,14 +226,12 @@ function recycleShop(pl, shop, shopLink) {
     const items = shopLink.length <= 0 ? shop : shop.items;
     for (const item of items) {
         if (item.items) {
-            fm.addButton(item.name, item.icon ? item.icon : "");
+            fm.addButton(item.name, item.icon ?? "");
             continue;
         }
         fm.addButton(
-            `${item.name}\n${item.price}${eco.name}/${
-                item.num ? item.num : ""
-            }个`,
-            item.icon ? item.icon : ""
+            `${item.name}\n${item.price}${eco.name}/${item.num ?? ""}个`,
+            item.icon ?? ""
         );
     }
     pl.sendForm(fm, (pl, arg) => {
@@ -248,9 +239,9 @@ function recycleShop(pl, shop, shopLink) {
             if (shopLink.length > 0) {
                 return recycleShop(pl, shopLink.pop(), shopLink);
             }
-            const db = new JsonConfigFile("plugins/Shop/data.json");
-            const sell = db.init("sell", []);
-            db.close();
+            const shopData = new JsonConfigFile("plugins/Shop/data.json");
+            const sell = shopData.init("sell", []);
+            shopData.close();
             if (sell.length <= 0) return;
             return main(pl, true);
         }
@@ -293,7 +284,7 @@ function recycleShop(pl, shop, shopLink) {
             if (!item.match(plsItem)) continue;
             count += plsItem.count;
         }
-        if (count < (itemData.num ? itemData.num : 1)) {
+        if (count < (itemData.num ?? 1)) {
             pl.sendToast("商店", "§c物品回收失败：数量不足");
             return recycleShop(pl, shop, shopLink);
         }
@@ -302,14 +293,14 @@ function recycleShop(pl, shop, shopLink) {
     });
 }
 function recycleConfirm(pl, itemData, count, shopLink, item) {
+    let total = 0;
+    for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
     const fm = mc
         .newCustomForm()
         .setTitle("回收物品")
         .addLabel(`名称：${itemData.name}`)
-        .addLabel(
-            `单价：${itemData.price}/${itemData.num ? itemData.num : ""}个`
-        )
-        .addLabel(`当前税率：${serviceCharge * 100}％`);
+        .addLabel(`单价：${itemData.price}/${itemData.num ?? ""}个`)
+        .addLabel(`当前税率：${total / 10 ** Math.floor(Math.log10(total))}％`);
     if (itemData.num) {
         if (count / itemData.num >= 2) {
             const nums = [];
@@ -327,7 +318,7 @@ function recycleConfirm(pl, itemData, count, shopLink, item) {
             if (!item.match(plsItem)) continue;
             count += plsItem.count;
         }
-        let num = args[3] ? args[3] : itemData.num ? 0 : 1;
+        let num = args[3] ? args[3] : itemData.num ?? 1;
         if (isNaN(num)) {
             pl.sendToast("商店", "§c物品回收失败：数量有误");
             return recycleShop(pl, shopLink.pop(), shopLink);
@@ -348,10 +339,12 @@ function recycleConfirm(pl, itemData, count, shopLink, item) {
             else plsItem.setNull();
             pl.refreshItems();
         }
+        let total = 0;
+        for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
         const get = Math.round(
-            (num / (itemData.num ? itemData.num : 1)) *
+            (num / (itemData.num ?? 1)) *
                 itemData.price *
-                (1 - serviceCharge)
+                (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
         );
         eco.add(pl, get);
         pl.sendToast("商店", `物品回收成功（您获得了${get}${eco.name}）`);
