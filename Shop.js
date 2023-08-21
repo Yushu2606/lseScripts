@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Shop", "商店", [1, 6, 4]);
+ll.registerPlugin("Shop", "商店", [1, 6, 5]);
 
 const config = new JsonConfigFile("plugins/Shop/config.json");
 const command = config.init("command", "shop");
@@ -58,13 +58,10 @@ const eco = (() => {
         case "exp":
             return {
                 add: (pl, money) => pl.addExperience(money),
-                reduce: (pl, money, isLv) =>
-                    isLv ? pl.reduceLevel(money) : pl.reduceExperience(money),
+                reduce: (pl, money) => pl.reduceExperience(money),
                 get: (pl) => pl.getTotalExperience(),
                 name: "经验值",
             };
-        default:
-            throw "配置项异常！";
     }
 })();
 config.close();
@@ -137,9 +134,9 @@ function sellShop(pl, shop, shopLink) {
             shopLink.push(shop);
             return sellShop(pl, item, shopLink);
         }
-        let count = eco.get(pl) / item.price;
-        if (count >= 2 ** 11) count = 2 ** 11;
-        const maxNum = item.num ? count * item.num : count;
+        let count = Math.floor(eco.get(pl) / item.price);
+        if (count > 2 ** 11) count = 2 ** 11;
+        const maxNum = "num" in item ? count * item.num : count;
         if (maxNum <= 0) {
             pl.sendToast("商店", "§c物品购买失败：余额不足");
             return sellShop(pl, shop, shopLink);
@@ -172,7 +169,9 @@ function sellConfirm(pl, itemData, maxNum, shopLink) {
             return sellShop(pl, shopLink.pop(), shopLink);
         }
         if (itemData.num) num = (num + 1) * itemData.num;
-        let cost = Math.round(itemData.price * (num / (itemData.num ?? 1)));
+        let cost = Math.round(
+            itemData.price * ("num" in itemData ? num / itemData.num : num)
+        );
         if (eco.get(pl) < cost) {
             pl.sendToast("商店", "§c物品购买失败：余额不足");
             return sellShop(pl, shopLink.pop(), shopLink);
@@ -342,7 +341,7 @@ function recycleConfirm(pl, itemData, count, shopLink, item) {
         let total = 0;
         for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
         const get = Math.round(
-            (num / (itemData.num ?? 1)) *
+            ("num" in itemData ? num / itemData.num : num) *
                 itemData.price *
                 (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
         );
