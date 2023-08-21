@@ -64,21 +64,17 @@ const eco = (() => {
                 get: (pl) => pl.getTotalExperience(),
                 name: "经验值",
             };
-        default:
-            throw "配置项异常！";
     }
 })();
 config.close();
 const db = new KVDatabase("plugins/Bazaar/data");
-mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开物品集市。", PermType.Any);
-    cmd.overload();
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (ori.player) return main(ori.player);
-        return out.error("commands.generic.noTargetMatch");
-    });
-    cmd.setup();
+const cmd = mc.newCommand(command, "打开物品集市。", PermType.Any);
+cmd.overload();
+cmd.setCallback((_cmd, ori, out, _res) => {
+    if (ori.player) return main(ori.player);
+    return out.error("commands.generic.noTargetMatch");
 });
+cmd.setup();
 mc.listen("onJoin", (pl) => {
     const shop = db.get(pl.xuid);
     if (!shop || shop.pending.length <= 0) return;

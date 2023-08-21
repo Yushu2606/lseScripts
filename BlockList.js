@@ -34,66 +34,63 @@ English:
 ll.registerPlugin("BlockList", "封禁名单支持", [1, 0, 0]);
 
 let db = data.parseJson(File.readFrom("blocklist.json") ?? data.toJson([]));
-mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand("blocklist", "封禁用户。");
-    cmd.setEnum("ChangeAction", ["add", "remove"]);
-    cmd.setEnum("OtherAction", ["update"]);
-    cmd.mandatory("action", ParamType.Enum, "ChangeAction");
-    cmd.mandatory("action", ParamType.Enum, "OtherAction");
-    cmd.mandatory("player", ParamType.String);
-    cmd.optional("message", ParamType.String);
-    cmd.overload(["ChangeAction", "player", "message"]);
-    cmd.overload(["OtherAction"]);
-    cmd.setCallback((_cmd, _ori, out, res) => {
-        switch (res.action) {
-            case "add": {
-                let has = false;
-                for (const blData of db) {
-                    if (!blData.names.includes(res.player)) continue;
-                    has = true;
-                    break;
-                }
-                if (has) return out.error("已被封禁");
-                const pl = mc.getPlayer(res.player);
-                if (pl) {
-                    pl.kick(
-                        `§r§b很抱歉，您已§l§c被封禁§r${
-                            res.message ? `\n§a信息：§r${res.message}` : ""
-                        }`
-                    );
-                    out.success("玩家在线，已踢出");
-                }
-                const xuid = pl ? pl.xuid : data.name2xuid(res.player);
-                db.push({
-                    names: [res.player],
-                    xuids: xuid ? [xuid] : [],
-                    message: res.message ?? "",
-                    clientIds: pl ? [pl.getDevice().clientId] : [],
-                });
-                File.writeTo("blocklist.json", data.toJson(db));
-                return out.success("封禁成功");
+const cmd = mc.newCommand("blocklist", "封禁用户。");
+cmd.setEnum("ChangeAction", ["add", "remove"]);
+cmd.setEnum("OtherAction", ["update"]);
+cmd.mandatory("action", ParamType.Enum, "ChangeAction");
+cmd.mandatory("action", ParamType.Enum, "OtherAction");
+cmd.mandatory("player", ParamType.String);
+cmd.optional("message", ParamType.String);
+cmd.overload(["ChangeAction", "player", "message"]);
+cmd.overload(["OtherAction"]);
+cmd.setCallback((_cmd, _ori, out, res) => {
+    switch (res.action) {
+        case "add": {
+            let has = false;
+            for (const blData of db) {
+                if (!blData.names.includes(res.player)) continue;
+                has = true;
+                break;
             }
-            case "remove": {
-                const xuid = data.name2xuid(res.player);
-                db = db.filter((item) => {
-                    return !(
-                        item.xuids.includes(xuid) ||
-                        item.names.includes(res.player)
-                    );
-                });
-                File.writeTo("blocklist.json", data.toJson(db));
-                return out.success("解禁成功");
-            }
-            case "update": {
-                db = data.parseJson(
-                    File.readFrom("blocklist.json") ?? data.toJson([])
+            if (has) return out.error("已被封禁");
+            const pl = mc.getPlayer(res.player);
+            if (pl) {
+                pl.kick(
+                    `§r§b很抱歉，您已§l§c被封禁§r${
+                        res.message ? `\n§a信息：§r${res.message}` : ""
+                    }`
                 );
-                return out.success("更新成功");
+                out.success("玩家在线，已踢出");
             }
+            const xuid = pl ? pl.xuid : data.name2xuid(res.player);
+            db.push({
+                names: [res.player],
+                xuids: xuid ? [xuid] : [],
+                message: res.message ?? "",
+                clientIds: pl ? [pl.getDevice().clientId] : [],
+            });
+            File.writeTo("blocklist.json", data.toJson(db));
+            return out.success("封禁成功");
         }
-    });
-    cmd.setup();
+        case "remove": {
+            const xuid = data.name2xuid(res.player);
+            db = db.filter((item) => {
+                return !(
+                    item.xuids.includes(xuid) || item.names.includes(res.player)
+                );
+            });
+            File.writeTo("blocklist.json", data.toJson(db));
+            return out.success("解禁成功");
+        }
+        case "update": {
+            db = data.parseJson(
+                File.readFrom("blocklist.json") ?? data.toJson([])
+            );
+            return out.success("更新成功");
+        }
+    }
 });
+cmd.setup();
 mc.listen("onPreJoin", (pl) => {
     const device = pl.getDevice();
     for (const blData of db) {

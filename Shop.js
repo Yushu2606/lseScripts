@@ -69,15 +69,13 @@ const db = new JsonConfigFile("plugins/Shop/data.json");
 const sell = db.init("sell", []);
 const recycle = db.init("recycle", []);
 db.close();
-mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开商店菜单。", PermType.Any);
-    cmd.overload();
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (ori.player) return main(ori.player);
-        return out.error("commands.generic.noTargetMatch");
-    });
-    cmd.setup();
+const cmd = mc.newCommand(command, "打开商店菜单。", PermType.Any);
+cmd.overload();
+cmd.setCallback((_cmd, ori, out, _res) => {
+    if (ori.player) return main(ori.player);
+    return out.error("commands.generic.noTargetMatch");
 });
+cmd.setup();
 function main(pl, isFromShop) {
     const db = new JsonConfigFile("plugins/Shop/data.json");
     const sell = db.init("sell", []);
