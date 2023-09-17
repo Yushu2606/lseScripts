@@ -39,7 +39,7 @@ config.close();
 const db = new KVDatabase("plugins/QuitPenalty/data");
 mc.listen("onLeft", (pl) => {
     for (const dt of pen) {
-        if (dt.dim && dt.dim.indexOf(pl.pos.dimid) >= 0) return;
+        if (dt.dim && dt.dim.includes(pl.pos.dimid)) return;
         let i = 0;
         for (const type of ["x", "y", "z"]) {
             if (!dt[type]) ++i;

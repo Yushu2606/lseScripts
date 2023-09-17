@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("VanishingCurse", "消失诅咒", [1, 0, 0]);
+ll.registerPlugin("Curse", "诅咒", [1, 0, 0]);
 
 mc.listen("onPlayerDie", (pl, _src) => {
     process(pl, pl.getInventory());
@@ -45,11 +45,14 @@ function process(pl, inv) {
         if (!tag) continue;
         const enchData = tag.getData("ench");
         if (!enchData) continue;
-        for (const e of enchData.toArray()) {
-            if (e.id != 28) continue;
-            it.setNull();
-            pl.refreshItems();
-            break;
-        }
+        let enchs = enchData.toArray();
+        if (enchs.includes(28));
+        else if (enchs.includes(27))
+            NativeFunction.fromSymbol(
+                "?drop@Player@@UEAA_NAEBVItemStack@@_N@Z"
+            ).call(pl.asPointer(), it.asPointer(), false);
+        else continue;
+        it.setNull();
+        pl.refreshItems();
     }
 }
