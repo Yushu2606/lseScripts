@@ -50,7 +50,7 @@ function process(pl, inv) {
         else if (enchs.includes(27))
             NativeFunction.fromSymbol(
                 "?drop@Player@@UEAA_NAEBVItemStack@@_N@Z"
-            ).call(pl.asPointer(), it.asPointer(), false);
+            ).call(pl.asPointer(), it.asPointer(), true);
         else continue;
         it.setNull();
         pl.refreshItems();
